@@ -99,3 +99,10 @@ The script will:
 
 > ⚠️ **Under Active Development** ⚠️
 > This pipeline is currently under development. Features and documentation may change. 
+
+Initial pipeline structure for RETrace2
+
+- Core pipeline modules for phylogenetic tree reconstruction
+- Optional modules for bootstrapping and evaluation
+- Configuration and reference management
+- Basic documentation 
