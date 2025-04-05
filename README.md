@@ -7,7 +7,7 @@ A Nextflow-based bioinformatics pipeline for RETrace2 analysis.
 
 ## Overview
 
-RETrace2 is a comprehensive pipeline for processing and analyzing sequencing data to reconstruct single-cell phylogenetic trees using somatic microsatellite mutations. Designed for high-throughput sequencing datasets, it integrates quality control, alignment, microsatellite genotype calling, and tree reconstruction into a streamlined workflow.
+RETrace2 is a comprehensive pipeline for processing and analyzing sequencing data to reconstruct single-cell phylogenetic trees using somatic microsatellite mutations. It integrates quality control, alignment, microsatellite genotype calling, and tree reconstruction into a streamlined workflow.
 
 ## Features
 
