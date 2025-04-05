@@ -28,10 +28,13 @@ RETrace2 is a comprehensive pipeline for processing and analyzing sequencing dat
 RETrace2/
 ├── bin/                    # Utility scripts
 ├── modules/               # Nextflow modules
-│   ├── core/             # Core phylogenetic tree pipeline
-│   ├── bootstrap/        # Tree bootstrapping analysis
-│   ├── methylation/      # Methylation analysis
-│   └── evaluation/       # Tree accuracy evaluation
+│   ├── core/             # Core pipeline utilities
+│   ├── mapping/          # Read mapping and alignment
+│   ├── hipstr/          # Microsatellite calling
+│   ├── phylo/           # Phylogenetic tree reconstruction
+│   ├── bootstrap/       # Tree bootstrapping analysis
+│   ├── methylation/     # Methylation analysis
+│   └── evaluation/      # Tree accuracy evaluation
 ├── scripts/              # Supporting scripts
 ├── main.nf               # Main pipeline
 └── nextflow.config      # Pipeline configuration
@@ -57,9 +60,12 @@ RETrace2/
 
 ### Prerequisites
 - Nextflow
+- Python 3.x
+- FastQC
 - BWA
+- Samtools
 - HipSTR
-- Python (for tree building)
+- MultiQC
 
 ### Installation
 ```bash
