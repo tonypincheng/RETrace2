@@ -1,1 +1,16 @@
 results/
+work/
+.nextflow/
+.nextflow.log*
+tmp/
+*.html
+*.svg
+*.txt
+*.zip
+trace/
+dag/
+timeline/
+report/
+.DS_Store
+**/.DS_Store
+logs/
