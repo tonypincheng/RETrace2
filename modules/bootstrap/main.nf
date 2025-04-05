@@ -2,39 +2,43 @@
 
 nextflow.enable.dsl=2
 
-// Process: Bootstrap phylogenetic trees
-process bootstrap_trees {
+process BOOTSTRAP {
+    tag "bootstrap"
     publishDir "${params.output_dir}/bootstrap", mode: 'copy'
     
     input:
-    path microsatellites
-    path tree
+    path(tree)
+    path(vcf_files)
     
     output:
-    path "bootstrap_trees.nwk", emit: bootstrap_trees
-    path "bootstrap_support.pdf", emit: support_plot
+    path("bootstrap_trees.nwk"), emit: trees
+    path("bootstrap_support.txt"), emit: support
+    path("bootstrap_plot.pdf"), emit: plot
     
     script:
     """
-    Rscript $baseDir/scripts/bootstrap/bootstrap_trees.R \
-      --input "${microsatellites}" \
-      --tree "${tree}" \
-      --output "bootstrap_trees.nwk" \
-      --plot "bootstrap_support.pdf" \
-      --replicates ${params.bootstrap_replicates}
+    # Run bootstrap analysis
+    python $baseDir/scripts/bootstrap/bootstrap.py \
+        --tree $tree \
+        --vcf $vcf_files \
+        --iterations ${params.bootstrap_iterations} \
+        --output bootstrap_trees.nwk \
+        --support bootstrap_support.txt \
+        --plot bootstrap_plot.pdf
     """
 }
 
-// Module workflow
 workflow BOOTSTRAP {
     take:
-    microsatellites
     tree
+    vcf_files
     
     main:
-    bootstrap_trees(microsatellites, tree)
+    // Run bootstrap analysis
+    bootstrap_results = BOOTSTRAP(tree, vcf_files)
     
     emit:
-    bootstrap_trees = bootstrap_trees.out.bootstrap_trees
-    support_plot = bootstrap_trees.out.support_plot
+    trees = bootstrap_results.trees
+    support = bootstrap_results.support
+    plot = bootstrap_results.plot
 } 

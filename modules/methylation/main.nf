@@ -98,21 +98,70 @@ process multiqc {
     """
 }
 
+process METHYLATION_ANALYSIS {
+    tag "${sample_id}"
+    publishDir "${params.output_dir}/methylation", mode: 'copy'
+    
+    input:
+    tuple val(sample_id), path(reads)
+    
+    output:
+    path("${sample_id}.bed"), emit: bed
+    path("${sample_id}.stats"), emit: stats
+    
+    script:
+    """
+    # Run methylation analysis
+    python $baseDir/scripts/methylation/analyze_methylation.py \
+        --input $reads \
+        --genome ${params.genomes_base}/${params.genome}/raw_fasta/${params.genome}.fa \
+        --output ${sample_id}.bed \
+        --stats ${sample_id}.stats
+    """
+}
+
+process CELL_TYPE_INFERENCE {
+    tag "cell_type"
+    publishDir "${params.output_dir}/cell_type", mode: 'copy'
+    
+    input:
+    path(bed_files)
+    
+    output:
+    path("cell_type_predictions.txt"), emit: predictions
+    path("cell_type_plot.pdf"), emit: plot
+    
+    script:
+    """
+    # Infer cell types from methylation patterns
+    python $baseDir/scripts/methylation/infer_cell_types.py \
+        --input $bed_files \
+        --output cell_type_predictions.txt \
+        --plot cell_type_plot.pdf
+    """
+}
+
 // Module workflow
 workflow METHYLATION {
     take:
-    input_ch
+    reads
     
     main:
     // Run QC
-    fastqc(input_ch)
+    fastqc(reads)
     
     // Run preprocessing
-    preprocess(input_ch)
+    preprocess(reads)
     
     // Run alignment and methylation calling
     alignment(preprocess.out.trimmed_reads)
     methylation(alignment.out.aligned_reads)
+    
+    // Run methylation analysis
+    meth_results = METHYLATION_ANALYSIS(reads)
+    
+    // Infer cell types
+    cell_type_results = CELL_TYPE_INFERENCE(meth_results.bed)
     
     // Generate MultiQC report
     multiqc(
@@ -121,5 +170,8 @@ workflow METHYLATION {
     )
     
     emit:
-    methylation_bed = methylation.out.methylation_bed
+    bed = meth_results.bed
+    stats = meth_results.stats
+    predictions = cell_type_results.predictions
+    plot = cell_type_results.plot
 } 
