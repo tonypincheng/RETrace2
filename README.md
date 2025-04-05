@@ -94,4 +94,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## Contact
 
 Pin-Chung (Tony) Cheng 
-tonycheng521@gmal.com, picheg@ucsd.edu, tcheng@altoslabs.com 
+tonycheng521@gmal.com
