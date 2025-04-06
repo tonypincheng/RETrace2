@@ -15,15 +15,14 @@ process HIPSTR_CALLING {
     
     script:
     """
-    HipSTR \
-        --bams $bam \
-        --fasta ${params.genomes_base}/${params.genome}/raw_fasta/${params.genome}.fa \
+    # Call microsatellites using Python wrapper
+    python $baseDir/scripts/hipstr/call_hipstr.py \
+        --bam $bam \
+        --reference ${params.genomes_base}/${params.genome}/raw_fasta/${params.genome}.fa \
         --regions ${params.target_bed} \
-        --min-reads ${params.min_reads} \
-        --min-qual ${params.min_qual} \
-        --max-stutter ${params.max_stutter} \
         --output ${sample_id}.vcf \
-        --log ${sample_id}.log
+        --min-reads ${params.min_reads} \
+        --min-allele-freq ${params.min_qual}
     
     # Generate statistics
     python $baseDir/scripts/hipstr/stats.py ${sample_id}.vcf > ${sample_id}.stats

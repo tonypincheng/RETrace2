@@ -34,6 +34,7 @@ params.bootstrap_iterations = 100
 params.min_qual = 0.9
 params.min_reads = 10
 params.max_stutter = 1.0
+params.target_bed = "${baseDir}/resources/${params.genome}_microsatellites.bed"
 
 // Help message
 def helpMessage() {
@@ -57,6 +58,7 @@ def helpMessage() {
       --genome          Reference genome: 'mm39' or 'hg38' (default: ${params.genome})
       --genomes_base    Directory containing reference genomes (default: ${params.genomes_base})
       --download_reference  Download reference genome if not available (default: ${params.download_reference})
+      --target_bed      BED file with microsatellite regions (default: ${params.target_bed})
       
       --min_qual        Minimum quality score for HipSTR (default: ${params.min_qual})
       --min_reads       Minimum number of reads for HipSTR (default: ${params.min_reads})
@@ -78,6 +80,12 @@ def helpMessage() {
 if (params.help) {
     helpMessage()
     exit 0
+}
+
+// Check for required parameters
+if (!params.input_dir) {
+    log.error "Input directory not specified!"
+    exit 1
 }
 
 // Log pipeline info
@@ -107,26 +115,40 @@ input_ch = Channel.fromPath("${params.input_dir}/${params.fastq_pattern}", check
 
 // Main workflow
 workflow {
-    // Run core pipeline
+    // Core pipeline
     MAPPING(input_ch)
     HIPSTR(MAPPING.out.bam)
     PHYLO(HIPSTR.out.vcf)
     
+    // Capture main outputs
+    tree_ch = PHYLO.out.tree
+    matrix_ch = PHYLO.out.matrix
+    stats_ch = PHYLO.out.stats
+    
     // Optional analyses
     if (params.run_bootstrap) {
-        BOOTSTRAP(PHYLO.out.tree, params.bootstrap_iterations)
+        BOOTSTRAP(tree_ch, HIPSTR.out.vcf)
+        bootstrap_support_ch = BOOTSTRAP.out.support
+        bootstrap_trees_ch = BOOTSTRAP.out.trees
     }
     
     if (params.run_evaluation) {
-        EVALUATION(PHYLO.out.tree, params.ground_truth)
+        if (params.ground_truth) {
+            EVALUATION(tree_ch, file(params.ground_truth))
+            evaluation_results_ch = EVALUATION.out.results
+        } else {
+            log.warn "Evaluation requested but no ground truth provided. Skipping evaluation."
+        }
     }
     
     if (params.run_methylation) {
         METHYLATION(input_ch)
+        methylation_results_ch = METHYLATION.out.bed
+        cell_type_ch = METHYLATION.out.predictions
     }
     
     // Print workflow completion message
-    PHYLO.out.tree.view { "Phylogenetic tree completed: ${it}" }
+    tree_ch.view { "Phylogenetic tree completed: ${it}" }
 }
 
 // Handle workflow completion
@@ -134,4 +156,42 @@ workflow.onComplete {
     log.info "Pipeline completed at: $workflow.complete"
     log.info "Execution status: ${ workflow.success ? 'SUCCESS' : 'FAILED' }"
     log.info "Execution duration: $workflow.duration"
+    
+    if (workflow.success) {
+        log.info """
+        ===========================================
+         RETrace2 Pipeline - COMPLETED SUCCESSFULLY
+        ===========================================
+        Results are available in: ${params.output_dir}
+        
+        Core results:
+        - Phylogenetic tree: ${params.output_dir}/phylo/phylogenetic_tree.nwk
+        - Distance matrix: ${params.output_dir}/phylo/distance_matrix.txt
+        """
+        
+        if (params.run_bootstrap) {
+            log.info """
+        Bootstrap results:
+        - Support values: ${params.output_dir}/bootstrap/bootstrap_support.txt
+        - Bootstrap trees: ${params.output_dir}/bootstrap/bootstrap_trees.nwk
+            """
+        }
+        
+        if (params.run_evaluation && params.ground_truth) {
+            log.info """
+        Evaluation results:
+        - Evaluation metrics: ${params.output_dir}/evaluation/evaluation_results.txt
+            """
+        }
+        
+        if (params.run_methylation) {
+            log.info """
+        Methylation results:
+        - Methylation profiles: ${params.output_dir}/methylation/
+        - Cell type predictions: ${params.output_dir}/cell_type/cell_type_predictions.txt
+            """
+        }
+        
+        log.info "==========================================="
+    }
 }

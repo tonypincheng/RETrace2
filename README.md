@@ -28,7 +28,6 @@ RETrace2 is a comprehensive pipeline for processing and analyzing sequencing dat
 RETrace2/
 ├── bin/                    # Utility scripts
 ├── modules/               # Nextflow modules
-│   ├── core/             # Core pipeline utilities
 │   ├── mapping/          # Read mapping and alignment
 │   ├── hipstr/          # Microsatellite calling
 │   ├── phylo/           # Phylogenetic tree reconstruction
@@ -44,7 +43,7 @@ RETrace2/
 
 ### Current Development
 - [x] Basic pipeline structure
-- [x] Core module organization
+- [x] Module organization
 - [x] Configuration setup
 - [ ] HipSTR implementation
 - [ ] Tree building implementation
