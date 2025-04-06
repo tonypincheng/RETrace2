@@ -39,6 +39,16 @@ RETrace2/
 └── nextflow.config      # Pipeline configuration
 ```
 
+## Test Data
+
+The repository includes a small test dataset (~60MB total) in the `data/` directory. This dataset contains:
+- 6 FASTQ files with ~100,000 reads each
+- HCT116 cell line clones from a cell culture tree model
+- 12k probe set targeting homopolymers (10-14bp repeat lengths)
+- Sufficient data to test the pipeline's basic functionality
+
+For details about the test data, see the [data/README.md](data/README.md) file.
+
 ## Development Status
 
 ### Current Development
