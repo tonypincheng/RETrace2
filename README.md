@@ -12,7 +12,7 @@ RETrace2 is a comprehensive pipeline for processing and analyzing sequencing dat
 ## Features
 
 - Core pipeline:
-  - FastQC for quality control
+  - FastQC for quality control & Trim Galore for adapter trimming
   - Alignment with BWA
   - Microsatellite calling with HipSTR
   - Phylogenetic tree reconstruction
