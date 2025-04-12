@@ -94,6 +94,44 @@ nextflow run main.nf --input_dir data/ --output_dir results/ --run_bootstrap
 nextflow run main.nf --input_dir data/ --output_dir results/ --run_evaluation --ground_truth truth.nwk
 ```
 
+## Reference Genome Configuration
+
+RETrace2 provides flexible options for specifying reference genomes:
+
+### Option 1: Standard Directory Structure (Recommended for Research Groups)
+
+The pipeline uses a standardized directory structure for organizing reference genomes:
+
+```
+genomes_base/
+├── hg38/                  # Genome name
+│   ├── bwa-index/         # BWA index files
+│   │   └── hg38.fa        # BWA index FASTA
+│   └── methylpy/          # Methylation references
+│       └── ...
+├── mm10/
+│   └── ...
+```
+
+Use this structure with:
+
+```bash
+nextflow run main.nf --genomes_base /path/to/genomes --genome hg38
+```
+
+### Option 2: Direct Reference Path (Recommended for Custom Setups)
+
+Alternatively, specify reference files directly:
+
+```bash
+nextflow run main.nf --bwa_index_path /path/to/specific/reference.fa
+```
+
+This option overrides the standard directory structure and is useful for:
+- Custom or non-standard reference genomes
+- References located in different directories
+- Quick testing with specific reference files
+
 ## Contributing
 
 This project is under active development. Contributions are welcome! Please:

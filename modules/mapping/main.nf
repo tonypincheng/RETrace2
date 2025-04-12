@@ -52,12 +52,30 @@ process BWA_MEM {
     path("${sample_id}.stats"), emit: stats
     
     script:
+    // Use direct reference path if provided, otherwise build from genomes_base structure
+    def reference = params.bwa_index_path ?: "${params.genomes_base}/${params.genome}/bwa-index/${params.genome}.fa"
     """
-    bwa mem -t ${params.threads} ${params.genomes_base}/${params.genome}/bwa-index/${params.genome}.fa $reads | \
+    bwa mem -t ${params.threads} ${reference} $reads | \
     samtools sort -@${params.threads} -o ${sample_id}.sorted.bam
     
     samtools flagstat ${sample_id}.sorted.bam > ${sample_id}.stats
     samtools index ${sample_id}.sorted.bam
+    """
+}
+
+process MULTIQC {
+    publishDir "${params.output_dir}/multiqc", mode: 'copy'
+    
+    input:
+    path(fastqc_files)
+    path(stats_files)
+    
+    output:
+    path("multiqc_report.html"), emit: report
+    
+    script:
+    """
+    multiqc --force --filename multiqc_report.html .
     """
 }
 
@@ -75,8 +93,15 @@ workflow MAPPING {
     // Align reads
     bam_files = BWA_MEM(trimmed_reads)
     
+    // Run MultiQC
+    multiqc_report = MULTIQC(
+        fastqc_results.fastqc.collect(),
+        bam_files.stats.collect()
+    )
+    
     emit:
     bam = bam_files.bam
     stats = bam_files.stats
     fastqc = fastqc_results.fastqc
+    multiqc = multiqc_report.report
 } 
