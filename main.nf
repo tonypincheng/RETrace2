@@ -30,6 +30,12 @@ params.run_methylation = false
 params.ground_truth = null
 params.bootstrap_iterations = 100
 
+// If methylation is enabled, set default methylation input parameters
+if (params.run_methylation) {
+    params.methylation_input_dir = "data/methylation/"
+    params.methylation_fastq_pattern = "*.fastq.gz"
+}
+
 // HipSTR parameters
 params.min_qual = 0.9
 params.min_reads = 10
@@ -38,6 +44,11 @@ params.target_bed = "${baseDir}/resources/${params.genome}_microsatellites.bed"
 
 // Help message
 def helpMessage() {
+    def methylationHelp = params.run_methylation ? """
+      --methylation_input_dir Directory containing methylation FASTQ files (default: ${params.methylation_input_dir})
+      --methylation_fastq_pattern Pattern to match methylation FASTQ files (default: ${params.methylation_fastq_pattern})
+    """ : ""
+    
     log.info"""
     ===========================================
       RETrace2 Pipeline v1.0
@@ -71,7 +82,8 @@ def helpMessage() {
       --ground_truth    Path to ground truth data (default: ${params.ground_truth})
       
       --run_methylation Run methylation analysis (default: ${params.run_methylation})
-      
+      --methylation_input_dir Directory containing methylation FASTQ files (default: ${params.methylation_input_dir})
+      --methylation_fastq_pattern Pattern to match methylation FASTQ files (default: ${params.methylation_fastq_pattern})
       --help            Display this help message
     """
 }
@@ -113,6 +125,12 @@ Optional analyses  :
 input_ch = Channel.fromPath("${params.input_dir}/${params.fastq_pattern}", checkIfExists: true)
                    .map { file -> tuple(file.simpleName, file) }
 
+// Input channel for methylation FASTQ files (only if methylation is enabled)
+if (params.run_methylation) {
+    methylation_input_ch = Channel.fromPath("${params.methylation_input_dir}/${params.methylation_fastq_pattern}", checkIfExists: true)
+                                 .map { file -> tuple(file.simpleName, file) }
+}
+
 // Main workflow
 workflow {
     // Core pipeline
@@ -142,9 +160,11 @@ workflow {
     }
     
     if (params.run_methylation) {
-        METHYLATION(input_ch)
-        methylation_results_ch = METHYLATION.out.bed
-        cell_type_ch = METHYLATION.out.predictions
+        METHYLATION(methylation_input_ch)
+        methylation_results_ch = METHYLATION.out.results
+        methylation_stats_ch = METHYLATION.out.detailed_stats
+        methylation_summary_ch = METHYLATION.out.summary_stats
+        methylation_plot_ch = METHYLATION.out.summary_plot
     }
     
     // Print workflow completion message
@@ -188,7 +208,9 @@ workflow.onComplete {
             log.info """
         Methylation results:
         - Methylation profiles: ${params.output_dir}/methylation/
-        - Cell type predictions: ${params.output_dir}/cell_type/cell_type_predictions.txt
+        - Methylation stats: ${params.output_dir}/methylation/methylation_stats.txt
+        - Methylation summary: ${params.output_dir}/methylation/methylation_summary.txt
+        - Methylation plot: ${params.output_dir}/methylation/methylation_plot.png
             """
         }
         

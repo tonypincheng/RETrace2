@@ -117,7 +117,7 @@ genomes_base/
 Use this structure with:
 
 ```bash
-nextflow run main.nf --genomes_base /path/to/genomes --genome hg38
+nextflow run main.nf --genomes_base /path/to/genomes_base --genome hg38
 ```
 
 ### Option 2: Direct Reference Path (Recommended for Custom Setups)
