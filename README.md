@@ -41,7 +41,7 @@ RETrace2/
 
 ## Test Data
 
-The repository includes a small test dataset (~60MB total) in the `data/` directory. This dataset contains:
+The repository includes a small test dataset (~60MB total) in the `data/` directory.
 - 6 FASTQ files with ~100,000 reads each
 - HCT116 cell line clones from a cell culture tree model
 - 12k probe set targeting homopolymers (10-14bp repeat lengths)
@@ -62,7 +62,7 @@ For details about the test data, see the [data/README.md](data/README.md) file.
 ### Planned Features
 - [ ] Documentation
 - [ ] Testing framework
-- [ ] Example datasets
+- [x] Example datasets
 - [ ] Container support
 
 ## Getting Started
@@ -71,10 +71,11 @@ For details about the test data, see the [data/README.md](data/README.md) file.
 - Nextflow
 - Python 3.x
 - FastQC
+- MultiQC
 - BWA
 - Samtools
 - HipSTR
-- MultiQC
+
 
 ### Installation
 ```bash
@@ -147,4 +148,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## Contact
 
 Pin-Chung (Tony) Cheng 
-tonycheng521@gmal.com
+tonycheng521@gmail.com
