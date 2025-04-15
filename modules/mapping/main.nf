@@ -87,17 +87,16 @@ workflow MAPPING {
     // Run FastQC
     fastqc_results = FASTQC(reads)
     
+    // Generate QC report
+    multiqc_report = MULTIQC(
+        fastqc_results.fastqc.collect()
+    )
+    
     // Trim reads
     trimmed_reads = TRIM_GALORE(reads)
     
     // Align reads
     bam_files = BWA_MEM(trimmed_reads)
-    
-    // Run MultiQC
-    multiqc_report = MULTIQC(
-        fastqc_results.fastqc.collect(),
-        bam_files.stats.collect()
-    )
     
     emit:
     bam = bam_files.bam

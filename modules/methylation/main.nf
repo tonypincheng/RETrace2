@@ -18,7 +18,23 @@ process fastqc {
     """
 }
 
-// Process 2: Read Preprocessing
+// Process 2: MultiQC Report
+process multiqc {
+    publishDir "${params.output_dir}", mode: 'copy'
+    
+    input:
+    path('fastqc/*')
+    
+    output:
+    path "multiqc_report.html", emit: multiqc_report
+    
+    script:
+    """
+    multiqc .
+    """
+}
+
+// Process 3: Read Preprocessing
 process preprocess {
     publishDir "${params.output_dir}/trimmed", mode: 'copy'
     
@@ -26,17 +42,22 @@ process preprocess {
     tuple val(sample_id), path(reads)
     
     output:
-    tuple val(sample_id), path("${sample_id}_trimmed.fastq"), emit: trimmed_reads
+    tuple val(sample_id), path("${sample_id}_trimmed.fq.gz"), emit: trimmed_reads
     
     script:
     """
-    trimmomatic SE -threads ${task.cpus} \
-      ${reads} ${sample_id}_trimmed.fastq \
-      ILLUMINACLIP:$baseDir/assets/adapters.fa:2:30:10 LEADING:3 TRAILING:3 SLIDINGWINDOW:4:15 MINLEN:36
+    trim_galore \
+        --quality 30 \
+        --phred33 \
+        --stringency 3 \
+        --length 36 \
+        --output_dir . \
+        -j ${task.cpus} \
+        ${reads}
     """
 }
 
-// Process 3: Alignment
+// Process 4: Alignment
 process alignment {
     publishDir "${params.output_dir}/aligned", mode: 'copy'
     
@@ -44,20 +65,47 @@ process alignment {
     tuple val(sample_id), path(trimmed_reads)
     
     output:
-    tuple val(sample_id), path("${sample_id}.bam"), path("${sample_id}.bam.bai"), emit: aligned_reads
+    tuple val(sample_id), path("${sample_id}.sorted.bam"), path("${sample_id}.sorted.bam.bai"), path("${sample_id}.stats"), emit: aligned_reads
     
     script:
-    def fasta = getRefPath("fasta")
-    def bwa_index = getRefPath("bwa_index")
-    
     """
-    bwa mem -t ${task.cpus} ${bwa_index}/${params.genome} ${trimmed_reads} | \
-    samtools sort -@ ${task.cpus} -o ${sample_id}.bam -
-    samtools index ${sample_id}.bam
+    bwa mem -t ${task.cpus} /home/tcheng/Projects/GenomeDB/mm39/bwa-index/mm39.fa ${trimmed_reads} | \
+    samtools sort -@ ${task.cpus} -o ${sample_id}.sorted.bam -
+    samtools flagstat ${sample_id}.sorted.bam > ${sample_id}.stats
+    samtools index ${sample_id}.sorted.bam
     """
 }
 
-// Process 4: Methylation calling with methylpl
+// Process 5: Generate Summary Stats
+process generate_stats {
+    publishDir "${params.output_dir}/stats", mode: 'copy'
+    
+    input:
+    path(stats_files)
+    
+    output:
+    path("all_stats.txt"), emit: summary_stats
+    
+    script:
+    """
+    if [ -f all_stats.txt ]; then rm all_stats.txt; fi
+    
+    for f in ${stats_files}; do
+        fbname=\$(basename "\$f" .stats)
+        echo "\$fbname" >> all_stats.txt
+        
+        # Extract the total number of primary reads
+        n_read=\$(grep " in total " "\$f" | awk '{print \$1}')
+        echo "Total Reads: \$n_read" >> all_stats.txt
+        
+        # Extract the primary mapped percentage
+        align_rate=\$(grep " mapped (" "\$f" | awk -F '[()]' '{print \$2}')
+        echo "Alignment Rate: \$align_rate" >> all_stats.txt
+    done
+    """
+}
+
+// Process 5: Methylation calling with methylpl
 process methylation {
     publishDir "${params.output_dir}/methylation", mode: 'copy'
     
@@ -78,23 +126,6 @@ process methylation {
       --index-dir ${methylpl_index} \
       --threads ${task.cpus} \
       --output ${sample_id}_methylation.bed
-    """
-}
-
-// Process 5: MultiQC Report
-process multiqc {
-    publishDir "${params.output_dir}", mode: 'copy'
-    
-    input:
-    path('fastqc/*')
-    path('methylation/*')
-    
-    output:
-    path "multiqc_report.html", emit: multiqc_report
-    
-    script:
-    """
-    multiqc .
     """
 }
 
@@ -150,12 +181,22 @@ workflow METHYLATION {
     // Run QC
     fastqc(reads)
     
+    // Generate QC report
+    multiqc(
+        fastqc.out.fastqc_results.collect().ifEmpty([])
+    )
+    
     // Run preprocessing
     preprocess(reads)
     
-    // Run alignment and methylation calling
+    // Run alignment
     alignment(preprocess.out.trimmed_reads)
-    methylation(alignment.out.aligned_reads)
+    
+    // Generate summary stats
+    stats = generate_stats(alignment.out.aligned_reads.collect{it[2]})
+    
+    // Run methylation calling
+    methylation(alignment.out.aligned_reads.collect{it[0,1]})
     
     // Run methylation analysis
     meth_results = METHYLATION_ANALYSIS(reads)
@@ -163,15 +204,10 @@ workflow METHYLATION {
     // Infer cell types
     cell_type_results = CELL_TYPE_INFERENCE(meth_results.bed)
     
-    // Generate MultiQC report
-    multiqc(
-        fastqc.out.fastqc_results.collect().ifEmpty([]),
-        methylation.out.methylation_bed.collect().ifEmpty([])
-    )
-    
     emit:
     bed = meth_results.bed
     stats = meth_results.stats
     predictions = cell_type_results.predictions
     plot = cell_type_results.plot
+    summary_stats = stats.summary_stats
 } 
