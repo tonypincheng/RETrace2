@@ -42,7 +42,7 @@ process preprocess {
     tuple val(sample_id), path(reads)
     
     output:
-    tuple val(sample_id), path("${sample_id}_R1_trimmed.fq.gz"), emit: trimmed_reads
+    tuple val(sample_id), path("${sample_id}_trimmed.fq.gz"), emit: trimmed_reads
     
     script:
     """
@@ -60,14 +60,14 @@ process preprocess {
 
 // Process 4: Run Methylpy
 process methylpy {
-    publishDir "${params.output_dir}/methylation", mode: 'copy'
+    publishDir "${params.output_dir}/methylpy", mode: 'copy'
     
     input:
     tuple val(sample_id), path(trimmed_reads)
     
     output:
-    path("${sample_id}.log"), emit: log
-    path("${sample_name}/*"), emit: results
+    path("${sample_id}.log"), emit: log_file
+    path("${sample_id}/*"), emit: results
     
     script:
     """
@@ -102,7 +102,7 @@ process analyze_methylpy_stats {
     
     script:
     """
-    python $baseDir/scripts/methylation/analyze_methylpy_stats.py \
+    python SbaseDir/modules/methylation/analyze_methylpy_stats.py \
         --log ${log_files} \
         --tsv-dir . \
         --output-dir .
@@ -113,40 +113,35 @@ process analyze_methylpy_stats {
 // Module workflow
 workflow METHYLATION {
     take:
-    methylation_reads
+    methyl_reads
     
     main:
     // Run QC on methylation reads
-    fastqc(methylation_reads)
+    fastqc(methyl_reads)
     
     // Generate QC report
     multiqc(
         fastqc.out.fastqc_results.collect().ifEmpty([])
     )
     
-    // Only run methylation analysis if specified
-    if (params.run_methylation) {
-        // Run preprocessing on methylation reads
-        preprocess(methylation_reads)
-        
-        // Run methylpy
-        methylpy_results = methylpy(preprocess.out.trimmed_reads)
-        
-        // Analyze methylpy output and stats
-        stats = analyze_methylpy_stats(methylpy_results.log.collect(), methylpy_results.results)
-        
-        emit:
-        log = methylpy_results.log
-        results = methylpy_results.results
-        detailed_stats = stats.detailed_stats
-        summary_stats = stats.summary_stats
-        summary_plot = stats.summary_plot
-    } else {
-        emit:
-        log = []
-        results = []
-        detailed_stats = []
-        summary_stats = []
-        summary_plot = []
-    }
+    // Run preprocessing on methylation reads
+    preprocess(methyl_reads)
+    
+    // Run methylpy
+    methylpy_results = methylpy(preprocess.out.trimmed_reads)
+    
+    // Analyze methylpy output and stats
+    stats = analyze_methylpy_stats(methylpy_results.log_file.collect(), methylpy_results.results)
+    
+    emit:
+    log_file = methylpy_results.log_file
+    results = methylpy_results.results
+    detailed_stats = stats.detailed_stats
+    summary_stats = stats.summary_stats
+    summary_plot = stats.summary_plot
+}
+
+// Add this at the end of the file
+workflow.onComplete {
+    println "Methylation module completed"
 } 

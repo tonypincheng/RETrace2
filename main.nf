@@ -11,7 +11,7 @@ include { EVALUATION } from './modules/evaluation/main.nf' optional params.run_e
 include { METHYLATION } from './modules/methylation/main.nf' optional params.run_methylation
 
 // Pipeline parameters
-params.input_dir = "data/"
+params.input_dir = "data/HCT116"
 params.output_dir = "results/"
 params.fastq_pattern = "*.fastq.gz"
 params.threads = 30

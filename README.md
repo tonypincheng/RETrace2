@@ -114,12 +114,15 @@ The pipeline uses a standardized directory structure for organizing reference ge
 
 ```
 genomes_base/
-├── hg38/                  # Genome name
+├── mm39/                  # Genome name
+│   ├── raw_fasta/         
+│   │   └── mm39.fa        # raw fasta files
+│   │   └── mm39.fa.fai          
 │   ├── bwa-index/         # BWA index files
-│   │   └── hg38.fa        # BWA index FASTA
-│   └── methylpy/          # Methylation references
+│   │   └── mm39.fa        
+│   └── methylpy-ref/      # Methylation references
 │       └── ...
-├── mm10/
+├── hg38/
 │   └── ...
 ```
 
