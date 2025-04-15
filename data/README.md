@@ -4,12 +4,15 @@ This directory contains test data for the RETrace2 pipeline. These datasets are 
 
 ## Dataset Description
 
-The test data consists of FASTQ files from HCT116 single cell samples with microsatellite targets. Each file contains approximately 100,000 reads (9-10MB per file).
+The test data consists of two types of datasets:
+
+### 1. HCT116 Human Cell Line Data
+FASTQ files from HCT116 single cell samples with microsatellite targets. Each file contains approximately 100,000 reads (9-10MB per file).
 
 Files are named according to the following convention:
 `MS_1nt12k10-14bp_HCT116_SC_[clone-id]_[plate-info]_[reads-count].fastq.gz`
 
-### Included Files:
+#### Included Files:
 
 - **Cell Clone 2-1-C4_3-7-G7 pair**:
   - MS_1nt12k10-14bp_HCT116_SC_2-1-C4_3-7-G7_20230110_Plate2-2G_100000reads.fastq.gz
@@ -23,20 +26,53 @@ Files are named according to the following convention:
   - MS_1nt12k10-14bp_HCT116_SC_2-1-H9_3-4-D8_20230110_Plate2-7E_100000reads.fastq.gz
   - MS_1nt12k10-14bp_HCT116_SC_2-1-H9_3-4-D8_20230110_Plate2-9E_100000reads.fastq.gz
 
+### 2. MSH2 Mouse Data
+FASTQ files from MSH2 mouse samples, including both microsatellite (MS) and methylation (Methyl) libraries. These datasets are designed for testing the dual-omic pipeline capabilities.
+
+Files are named according to the following convention:
+`[LibraryType]_MSH2_[sample-info]_[reads-count].fastq.gz`
+
+#### Included Files:
+- **Microsatellite Library**:
+  - MS_MSH2_[sample-info]_100000reads.fastq.gz
+  - [Additional MS files...]
+
+- **Methylation Library**:
+  - Methyl_MSH2_[sample-info]_100000reads.fastq.gz
+  - [Additional Methyl files...]
+
 ## Data Content
 
+### HCT116 Data
 These files contain microsatellite data with the following characteristics:
 - Part of the HCT116 cell culture tree model
 - 12k probe set (a smaller subset of the full probe set for testing)
 - Targeting homopolymers between 10-14bp repeat lengths
 - Single cell samples
+- Includes ground truth data for validation
+
+### MSH2 Mouse Data
+These files contain:
+- Both microsatellite and methylation data
+- Designed for testing dual-omic pipeline capabilities
 
 ## Usage
 
-These test datasets are designed for quick validation of the RETrace2 pipeline. They can be used with the default pipeline configuration:
+These test datasets are designed for quick validation of the RETrace2 pipeline. They can be used with different pipeline configurations:
 
+### Basic Pipeline (HCT116 and MSH2 data)
 ```bash
 nextflow run main.nf --input_dir data/ --output_dir results/
+```
+
+### Pipeline with Ground Truth Validation (HCT116 data)
+```bash
+nextflow run main.nf --input_dir data/ --output_dir results/ --ground_truth true
+```
+
+### Dual-omic Pipeline (MSH2 data)
+```bash
+nextflow run main.nf --input_dir data/ --output_dir results/ --methylation true
 ```
 
 ## Data Size
