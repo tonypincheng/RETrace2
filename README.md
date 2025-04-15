@@ -41,11 +41,20 @@ RETrace2/
 
 ## Test Data
 
-The repository includes a small test dataset (~60MB total) in the `data/` directory.
+The repository includes small test datasets (~60MB total) in the `data/` directory:
+
+### HCT116 Human Cell Line Data
 - 6 FASTQ files with ~100,000 reads each
 - HCT116 cell line clones from a cell culture tree model
 - 12k probe set targeting homopolymers (10-14bp repeat lengths)
-- Sufficient data to test the pipeline's basic functionality
+- Includes ground truth data for validation
+- Sufficient data to test the pipeline's basic functionality and ground truth validation
+
+### MSH2 Mouse Data
+- FASTQ files with ~100,000 reads each
+- Includes both microsatellite (MS) and methylation (Methyl) libraries
+- Designed for testing dual-omic pipeline capabilities
+- Sufficient data to test the pipeline's methylation analysis functionality
 
 For details about the test data, see the [data/README.md](data/README.md) file.
 
