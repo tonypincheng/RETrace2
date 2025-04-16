@@ -1,23 +1,19 @@
 name: retrace2
 channels:
-  - bioconda
   - conda-forge
+  - bioconda
   - defaults
 dependencies:
+  - nextflow=24.10.5
+  - fastqc=0.12.1
+  - multiqc=1.14
+  - trim-galore=0.6.10
+  - methylpy=1.4.5
   - python=3.9
-  - nextflow>=24.04.0
-  - fastqc>=0.11.9
-  - multiqc>=1.14
-  - trimmomatic>=0.39
-  - bwa>=0.7.17
-  - samtools>=1.17
-  - bedtools>=2.30.0
-  - r-base>=4.1.0
-  - bioconductor-deseq2>=1.36.0
-  - pandas>=1.5.0
-  - numpy>=1.23.0
-  - matplotlib>=3.6.0
-  - seaborn>=0.12.0
-  - pip
-  - pip:
-    - methylpl>=1.0.0  # Install methylpl via pip
+  - bwa
+  - samtools
+  - bedtools
+  - pandas
+  - numpy
+  - matplotlib
+  - seaborn
