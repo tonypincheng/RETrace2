@@ -5,6 +5,7 @@ nextflow.enable.dsl=2
 process FASTQC {
     tag "${sample_id}"
     publishDir "${params.output_dir}/fastqc", mode: 'copy'
+    container "quay.io/biocontainers/fastqc:${params.versions.fastqc}"
     
     input:
     tuple val(sample_id), path(reads)
@@ -21,6 +22,7 @@ process FASTQC {
 process TRIM_GALORE {
     tag "${sample_id}"
     publishDir "${params.output_dir}/trimmed", mode: 'copy'
+    container "quay.io/biocontainers/trim-galore:${params.versions.trim_galore}"
     
     input:
     tuple val(sample_id), path(reads)
@@ -43,6 +45,7 @@ process TRIM_GALORE {
 process BWA_MEM {
     tag "${sample_id}"
     publishDir "${params.output_dir}/bam", mode: 'copy'
+    container "quay.io/biocontainers/bwa:${params.versions.bwa}"
     
     input:
     tuple val(sample_id), path(reads)
@@ -65,6 +68,7 @@ process BWA_MEM {
 
 process MULTIQC {
     publishDir "${params.output_dir}/multiqc", mode: 'copy'
+    container "quay.io/biocontainers/multiqc:${params.versions.multiqc}"
     
     input:
     path(fastqc_files)

@@ -5,6 +5,8 @@ nextflow.enable.dsl=2
 // Process 1: Quality Control
 process fastqc {
     publishDir "${params.output_dir}/fastqc", mode: 'copy'
+    container "community.wave.seqera.io/library/fastqc:0.12.1--af7a5314d5015c29"
+    conda "bioconda::fastqc=0.12.1"
     
     input:
     tuple val(sample_id), path(reads)
@@ -14,19 +16,22 @@ process fastqc {
     
     script:
     """
-    fastqc -t ${task.cpus} -o . ${reads}
+    fastqc -t task.cpus -o . ${reads}
     """
 }
 
 // Process 2: MultiQC Report
 process multiqc {
-    publishDir "${params.output_dir}", mode: 'copy'
+    publishDir "${params.output_dir}/fastqc", mode: 'copy'
+    container "community.wave.seqera.io/library/pip_multiqc:c3f2613b3e0ce82e"
+    conda "bioconda::multiqc=1.28"
     
     input:
     path('fastqc/*')
     
     output:
-    path "multiqc_report.html", emit: multiqc_report
+    path "multiqc_report.html"
+    path "multiqc_data"
     
     script:
     """
@@ -37,6 +42,8 @@ process multiqc {
 // Process 3: Read Preprocessing
 process preprocess {
     publishDir "${params.output_dir}/trimmed", mode: 'copy'
+    container "quay.io/biocontainers/trim-galore:0.6.10--hdfd78af_0"
+    conda "bioconda::trim-galore=0.6.10"
     
     input:
     tuple val(sample_id), path(reads)
@@ -61,6 +68,8 @@ process preprocess {
 // Process 4: Run Methylpy
 process methylpy {
     publishDir "${params.output_dir}/methylpy", mode: 'copy'
+    container "quay.io/biocontainers/methylpy:1.4.5--py39h38f01e4_0"
+    conda "bioconda::methylpy=1.4.5"
     
     input:
     tuple val(sample_id), path(trimmed_reads)
@@ -70,26 +79,43 @@ process methylpy {
     path("${sample_id}/*"), emit: results
     
     script:
-    """
-    methylpy single-end-pipeline \
-        --read-files ${trimmed_reads} \
-        --sample ${sample_id} \
-        --forward-ref ${params.genomes_base}/${params.genome}/methylpl-ref/${params.genome}_f \
-        --reverse-ref ${params.genomes_base}/${params.genome}/methylpl-ref/${params.genome}_r \
-        --ref-fasta ${params.genomes_base}/${params.genome}/raw_fasta/${params.genome}.fa \
-        --num-procs ${task.cpus} \
-        --remove-clonal False \
-        --min-qual-score 30 \
-        --trim-reads False \
-        --path-to-picard="picard" \
-        --path-to-output . \
-        > ${sample_id}.log 2>&1
-    """
+    def cpus = task.cpus ?: 1
+    def genomes_base = params.genomes_base ?: "/path/to/reference/genomes"
+    def genome = params.genome ?: "mm39"
+    
+    // For testing purposes, create mock files if not running for real
+    def test_mode = params.test_mode ?: false
+    
+    if (test_mode) {
+        """
+        mkdir -p ${sample_id}
+        echo "Mock methylpy run for ${sample_id}" > ${sample_id}.log
+        echo "Mock results" > ${sample_id}/results.txt
+        """
+    } else {
+        """
+        methylpy single-end-pipeline \
+            --read-files ${trimmed_reads} \
+            --sample ${sample_id} \
+            --forward-ref ${genomes_base}/${genome}/methylpl-ref/${genome}_f \
+            --reverse-ref ${genomes_base}/${genome}/methylpl-ref/${genome}_r \
+            --ref-fasta ${genomes_base}/${genome}/raw_fasta/${genome}.fa \
+            --num-procs ${cpus} \
+            --remove-clonal False \
+            --min-qual-score 30 \
+            --trim-reads False \
+            --path-to-picard="picard" \
+            --path-to-output . \
+            > ${sample_id}.log 2>&1
+        """
+    }
 }
 
 // Process 5: Analyze methylpy output and generate summary statistics
 process analyze_methylpy_stats {
     publishDir "${params.output_dir}/stats", mode: 'copy'
+    container "quay.io/biocontainers/python:3.9"
+    conda "conda-forge::python=3.9 pandas matplotlib seaborn"
     
     input:
     path(log_files)
@@ -102,43 +128,40 @@ process analyze_methylpy_stats {
     
     script:
     """
-    python SbaseDir/modules/methylation/analyze_methylpy_stats.py \
+    python modules/methylation/analyze_methylpy_stats.py \
         --log ${log_files} \
         --tsv-dir . \
         --output-dir .
     """
 }
 
-
 // Module workflow
 workflow METHYLATION {
     take:
-    methyl_reads
+    reads
     
     main:
     // Run QC on methylation reads
-    fastqc(methyl_reads)
+    fastqc(reads)
     
     // Generate QC report
-    multiqc(
-        fastqc.out.fastqc_results.collect().ifEmpty([])
-    )
+    multiqc(fastqc.out.fastqc_results.collect().ifEmpty([]))
     
     // Run preprocessing on methylation reads
-    preprocess(methyl_reads)
+    // preprocess(reads)
     
-    // Run methylpy
-    methylpy_results = methylpy(preprocess.out.trimmed_reads)
+    // // Run methylpy
+    // methylpy_results = methylpy(preprocess.out.trimmed_reads)
     
-    // Analyze methylpy output and stats
-    stats = analyze_methylpy_stats(methylpy_results.log_file.collect(), methylpy_results.results)
+    // // Analyze methylpy output and stats
+    // stats = analyze_methylpy_stats(methylpy_results.log_file.collect(), methylpy_results.results)
     
-    emit:
-    log_file = methylpy_results.log_file
-    results = methylpy_results.results
-    detailed_stats = stats.detailed_stats
-    summary_stats = stats.summary_stats
-    summary_plot = stats.summary_plot
+    // emit:
+    // log_file = methylpy_results.log_file
+    // results = methylpy_results.results
+    // detailed_stats = stats.detailed_stats
+    // summary_stats = stats.summary_stats
+    // summary_plot = stats.summary_plot
 }
 
 // Add this at the end of the file

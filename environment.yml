@@ -6,14 +6,14 @@ channels:
 dependencies:
   - nextflow=24.10.5
   - fastqc=0.12.1
-  - multiqc=1.14
-  - trim-galore=0.6.10
-  - methylpy=1.4.5
-  - python=3.9
-  - bwa
-  - samtools
-  - bedtools
-  - pandas
-  - numpy
-  - matplotlib
-  - seaborn
+  - multiqc=1.28
+  # - trim-galore=0.6.10
+  # - methylpy=1.4.5
+  # - python=3.9
+  # - bwa
+  # - samtools
+  # - bedtools
+  # - pandas
+  # - numpy
+  # - matplotlib
+  # - seaborn
