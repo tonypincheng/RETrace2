@@ -4,7 +4,7 @@ nextflow.enable.dsl=2
 
 // Process 1: Quality Control
 process fastqc {
-    publishDir "${params.output_dir}/fastqc", mode: 'copy'
+    publishDir "${params.output_dir}/methylation/fastqc", mode: 'copy'
     container "quay.io/biocontainers/fastqc:0.12.1--hdfd78af_0"
     conda "bioconda::fastqc=0.12.1"
     
@@ -22,7 +22,7 @@ process fastqc {
 
 // Process 2: MultiQC Report
 process multiqc {
-    publishDir "${params.output_dir}/fastqc", mode: 'copy'
+    publishDir "${params.output_dir}/methylation/fastqc", mode: 'copy'
     container "quay.io/biocontainers/multiqc:1.28--pyhdfd78af_0"
     conda "bioconda::multiqc=1.28"
    
@@ -40,8 +40,8 @@ process multiqc {
 }
 
 // Process 3: Read Preprocessing
-process preprocess {
-    publishDir "${params.output_dir}/trimmed", mode: 'copy'
+process trim_galore {
+    publishDir "${params.output_dir}/methylation/trimmed", mode: 'copy'
     container "community.wave.seqera.io/library/trim-galore:0.6.10--1bf8ca4e1967cd18"
     conda "bioconda::trim-galore=0.6.10"
 
@@ -67,7 +67,7 @@ process preprocess {
 
 // Process 4: Run Methylpy
 process methylpy {
-    publishDir "${params.output_dir}/methylpy", mode: 'copy'
+    publishDir "${params.output_dir}/methylation/methylpy", mode: 'copy'
     container "community.wave.seqera.io/library/pip_methylpy:ae44180dc4227f32"
     conda "bioconda::methylpy=1.4.7"
     
@@ -136,10 +136,10 @@ workflow METHYLATION {
     multiqc(fastqc.out.fastqc_results.collect().ifEmpty([]))
     
     // Run preprocessing on methylation reads
-    preprocess(reads)
+    trim_galore(reads)
     
     // Run methylpy
-    methylpy(preprocess.out.trimmed_reads)
+    methylpy(trim_galore.out.trimmed_reads)
     
     // // Analyze methylpy output and stats
     // stats = analyze_methylpy_stats(methylpy_results.log_file.collect(), methylpy_results.results)

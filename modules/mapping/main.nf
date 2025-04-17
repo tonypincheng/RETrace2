@@ -2,33 +2,53 @@
 
 nextflow.enable.dsl=2
 
+// Process 1: Quality Control
 process FASTQC {
-    tag "${sample_id}"
-    publishDir "${params.output_dir}/fastqc", mode: 'copy'
-    container "quay.io/biocontainers/fastqc:${params.versions.fastqc}"
+    publishDir "${params.output_dir}/mapping/fastqc", mode: 'copy'
+    container "quay.io/biocontainers/fastqc:0.12.1--hdfd78af_0"
+    conda "bioconda::fastqc=0.12.1"
     
     input:
     tuple val(sample_id), path(reads)
     
     output:
-    path("${sample_id}_fastqc.html"), emit: fastqc
+    path("${sample_id}_fastqc.{zip,html}"), emit: fastqc_results
     
     script:
     """
-    fastqc $reads -o .
+    fastqc -t ${task.cpus} -o . ${reads}
+    """
+}
+
+// Process 2: MultiQC Report
+process MULTIQC {
+    publishDir "${params.output_dir}/mapping/fastqc", mode: 'copy'
+    container "quay.io/biocontainers/multiqc:1.28--pyhdfd78af_0"
+    conda "bioconda::multiqc=1.28"
+   
+    input:
+    path('fastqc/*')
+    
+    output:
+    path("multiqc_report.html")
+    path("multiqc_data")
+    
+    script:
+    """
+    multiqc .
     """
 }
 
 process TRIM_GALORE {
-    tag "${sample_id}"
-    publishDir "${params.output_dir}/trimmed", mode: 'copy'
-    container "quay.io/biocontainers/trim-galore:${params.versions.trim_galore}"
+    publishDir "${params.output_dir}/mapping/trimmed", mode: 'copy'
+    container "community.wave.seqera.io/library/trim-galore:0.6.10--1bf8ca4e1967cd18"
+    conda "bioconda::trim-galore=0.6.10"
     
     input:
     tuple val(sample_id), path(reads)
     
     output:
-    tuple val(sample_id), path("${sample_id}_trimmed.fq.gz"), emit: trimmed
+    tuple val(sample_id), path("${sample_id}_trimmed.fq.gz"), emit: trimmed_reads
     
     script:
     """
@@ -37,51 +57,36 @@ process TRIM_GALORE {
         --phred33 \
         --stringency 3 \
         --length 36 \
+        --cores ${task.cpus} \
         --output_dir . \
-        $reads
+        ${reads}
     """
 }
 
 process BWA_MEM {
-    tag "${sample_id}"
-    publishDir "${params.output_dir}/bam", mode: 'copy'
-    container "quay.io/biocontainers/bwa:${params.versions.bwa}"
-    
+    publishDir "${params.output_dir}/mapping/bam", mode: 'copy'
+    container "quay.io/biocontainers/bwa:0.7.19--h577a1d6_0"
+    conda "bioconda::bwa=0.7.19"
+
     input:
-    tuple val(sample_id), path(reads)
+    tuple val(sample_id), path(trimmed_reads)
     
     output:
-    tuple val(sample_id), path("${sample_id}.sorted.bam"), emit: bam
+    tuple val(sample_id), path("${sample_id}.sorted.bam"), path("${sample_id}.sorted.bam.bai"), emit: bam
     path("${sample_id}.stats"), emit: stats
     
     script:
     // Use direct reference path if provided, otherwise build from genomes_base structure
     def reference = params.bwa_index_path ?: "${params.genomes_base}/${params.genome}/bwa-index/${params.genome}.fa"
     """
-    bwa mem -t ${params.threads} ${reference} $reads | \
-    samtools sort -@${params.threads} -o ${sample_id}.sorted.bam
+    bwa mem -t ${task.cpus} ${reference} ${trimmed_reads} | \
+    samtools sort -@${task.cpus} -o ${sample_id}.sorted.bam
     
-    samtools flagstat ${sample_id}.sorted.bam > ${sample_id}.stats
     samtools index ${sample_id}.sorted.bam
+    samtools flagstat ${sample_id}.sorted.bam > ${sample_id}.stats
     """
 }
 
-process MULTIQC {
-    publishDir "${params.output_dir}/multiqc", mode: 'copy'
-    container "quay.io/biocontainers/multiqc:${params.versions.multiqc}"
-    
-    input:
-    path(fastqc_files)
-    path(stats_files)
-    
-    output:
-    path("multiqc_report.html"), emit: report
-    
-    script:
-    """
-    multiqc --force --filename multiqc_report.html .
-    """
-}
 
 workflow MAPPING {
     take:
@@ -89,22 +94,15 @@ workflow MAPPING {
     
     main:
     // Run FastQC
-    fastqc_results = FASTQC(reads)
+    FASTQC(reads)
     
     // Generate QC report
-    multiqc_report = MULTIQC(
-        fastqc_results.fastqc.collect()
-    )
+    MULTIQC(FASTQC.out.fastqc_results.collect())
     
     // Trim reads
-    trimmed_reads = TRIM_GALORE(reads)
+    TRIM_GALORE(reads)
     
     // Align reads
-    bam_files = BWA_MEM(trimmed_reads)
+    BWA_MEM(TRIM_GALORE.out.trimmed_reads)
     
-    emit:
-    bam = bam_files.bam
-    stats = bam_files.stats
-    fastqc = fastqc_results.fastqc
-    multiqc = multiqc_report.report
 } 

@@ -10,7 +10,7 @@ dependencies:
   - python=3.9
   - trim-galore=0.6.10
   - methylpy=1.4.7
-  # - bwa
+  - bwa=0.7.19
   # - samtools
   # - bedtools
   # - pandas

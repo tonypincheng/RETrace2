@@ -22,6 +22,7 @@ params.help = false
 params.genomes_base = "/path/to/reference/genomes"
 params.genome = "mm39"
 params.download_reference = false
+params.bwa_index_path = null
 
 // Optional analysis parameters
 params.run_bootstrap = false
@@ -68,6 +69,7 @@ def helpMessage() {
       
       --genome          Reference genome: 'mm39' or 'hg38' (default: ${params.genome})
       --genomes_base    Directory containing reference genomes (default: ${params.genomes_base})
+      --bwa_index_path  Path to BWA index [optional]. If not specified, will use ${params.genomes_base}/${params.genome}/bwa-index/${params.genome}.fa
       --download_reference  Download reference genome if not available (default: ${params.download_reference})
       --target_bed      BED file with microsatellite regions (default: ${params.target_bed})
       
