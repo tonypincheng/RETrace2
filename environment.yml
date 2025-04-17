@@ -9,7 +9,7 @@ dependencies:
   - multiqc=1.28
   - python=3.9
   - trim-galore=0.6.10
-  # - methylpy=1.4.5
+  - methylpy=1.4.7
   # - bwa
   # - samtools
   # - bedtools

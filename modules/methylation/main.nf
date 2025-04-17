@@ -12,11 +12,11 @@ process fastqc {
     tuple val(sample_id), path(reads)
     
     output:
-    path "${sample_id}_fastqc.{zip,html}", emit: fastqc_results
+    path("${sample_id}_fastqc.{zip,html}"), emit: fastqc_results
     
     script:
     """
-    fastqc -t task.cpus -o . ${reads}
+    fastqc -t ${task.cpus} -o . ${reads}
     """
 }
 
@@ -30,8 +30,8 @@ process multiqc {
     path('fastqc/*')
     
     output:
-    path "multiqc_report.html"
-    path "multiqc_data"
+    path("multiqc_report.html")
+    path("multiqc_data")
     
     script:
     """
@@ -75,24 +75,26 @@ process methylpy {
     tuple val(sample_id), path(trimmed_reads)
     
     output:
-    path("${sample_id}.log"), emit: log_file
-    path("${sample_id}/*"), emit: results
+    path("log/${sample_id}_methylpy.log"), emit: log_file
+    path("allc/*"), emit: allc
     
     script:
     """
+    mkdir -p log
+
     methylpy single-end-pipeline \
         --read-files ${trimmed_reads} \
         --sample ${sample_id} \
-        --forward-ref ${genomes_base}/${genome}/methylpl-ref/${genome}_f \
-        --reverse-ref ${genomes_base}/${genome}/methylpl-ref/${genome}_r \
-        --ref-fasta ${genomes_base}/${genome}/raw_fasta/${genome}.fa \
-        --num-procs task.cpus \
+        --forward-ref ${params.genomes_base}/${params.genome}/methylpl-ref/${params.genome}_f \
+        --reverse-ref ${params.genomes_base}/${params.genome}/methylpl-ref/${params.genome}_r \
+        --ref-fasta ${params.genomes_base}/${params.genome}/raw_fasta/${params.genome}.fa \
+        --num-procs ${task.cpus} \
         --remove-clonal False \
         --min-qual-score 30 \
         --trim-reads False \
         --path-to-picard="picard" \
-        --path-to-output . \
-        > ${sample_id}.log 2>&1
+        --path-to-output allc/ \
+        > log/${sample_id}_methylpy.log 2>&1
     """
 }
 
@@ -136,8 +138,8 @@ workflow METHYLATION {
     // Run preprocessing on methylation reads
     preprocess(reads)
     
-    // // Run methylpy
-    methylpy_results = methylpy(preprocess.out.trimmed_reads)
+    // Run methylpy
+    methylpy(preprocess.out.trimmed_reads)
     
     // // Analyze methylpy output and stats
     // stats = analyze_methylpy_stats(methylpy_results.log_file.collect(), methylpy_results.results)

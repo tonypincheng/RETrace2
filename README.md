@@ -82,6 +82,7 @@ For details about the test data, see the [data/README.md](data/README.md) file.
 - multiqc=1.28
 - python=3.9
 - trim-galore=0.6.10
+- methylpy=1.4.7
 
 > **Note:** You can also use Docker or Conda (see below) to handle dependencies automatically.
 
