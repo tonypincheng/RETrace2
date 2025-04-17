@@ -77,14 +77,12 @@ For details about the test data, see the [data/README.md](data/README.md) file.
 ## Getting Started
 
 ### Prerequisites
-- Nextflow
-- Python 3.x
-- FastQC
-- MultiQC
-- BWA
-- Samtools
-- HipSTR
+- nextflow=24.10.5
+- fastqc=0.12.1
+- multiqc=1.28
+- python=3.9
 
+> **Note:** You can also use Docker or Conda (see below) to handle dependencies automatically.
 
 ### Installation
 ```bash
@@ -102,6 +100,47 @@ nextflow run main.nf --input_dir data/ --output_dir results/ --run_bootstrap
 
 # Run with evaluation
 nextflow run main.nf --input_dir data/ --output_dir results/ --run_evaluation --ground_truth truth.nwk
+
+## Execution Environments
+
+RETrace2 supports multiple execution environments through Nextflow profiles.
+
+### Standard (Default)
+By default, the pipeline runs with the standard profile, which has Docker enabled:
+
+```bash
+# This runs with Docker enabled by default
+nextflow run main.nf
+```
+
+You don't need to specify `-profile` for this behavior.
+
+### Docker
+To explicitly use the Docker profile:
+
+```bash
+nextflow run main.nf -profile docker
+```
+
+This profile uses pre-configured Docker containers for each process, ensuring reproducibility across different computing environments.
+
+### Conda
+Alternatively, you can use Conda to automatically create environments with required dependencies:
+
+```bash
+nextflow run main.nf -profile conda
+```
+
+This will automatically create and manage Conda environments based on the requirements in `environment.yml`.
+
+### Running Without Containers
+If you prefer to run without Docker or Conda (using your system's native tools), you need to:
+
+1. Ensure all required dependencies are installed and in your PATH
+2. Disable Docker and Conda when running:
+
+```bash
+nextflow run main.nf -with-docker false -with-conda false
 ```
 
 ## Reference Genome Configuration
