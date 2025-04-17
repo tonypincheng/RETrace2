@@ -94,15 +94,17 @@ cd retrace2
 ```bash
 # Run core pipeline
 nextflow run main.nf --input_dir data/ --output_dir results/
-
+```
+```bash
 # Run with bootstrapping
 nextflow run main.nf --input_dir data/ --output_dir results/ --run_bootstrap
-
+```
+```bash
 # Run with evaluation
 nextflow run main.nf --input_dir data/ --output_dir results/ --run_evaluation --ground_truth truth.nwk
+```
 
 ## Execution Environments
-
 RETrace2 supports multiple execution environments through Nextflow profiles.
 
 ### Standard (Default)
