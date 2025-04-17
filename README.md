@@ -104,6 +104,7 @@ nextflow run main.nf --input_dir data/ --output_dir results/ --run_bootstrap
 nextflow run main.nf --input_dir data/ --output_dir results/ --run_evaluation --ground_truth truth.nwk
 ```
 
+
 ## Execution Environments
 RETrace2 supports multiple execution environments through Nextflow profiles.
 
@@ -123,8 +124,6 @@ To explicitly use the Docker profile:
 ```bash
 nextflow run main.nf -profile docker
 ```
-
-This profile uses pre-configured Docker containers for each process, ensuring reproducibility across different computing environments.
 
 ### Conda
 Alternatively, you can use Conda to automatically create environments with required dependencies:
