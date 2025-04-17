@@ -81,6 +81,7 @@ For details about the test data, see the [data/README.md](data/README.md) file.
 - fastqc=0.12.1
 - multiqc=1.28
 - python=3.9
+- trim-galore=0.6.10
 
 > **Note:** You can also use Docker or Conda (see below) to handle dependencies automatically.
 
@@ -109,21 +110,35 @@ nextflow run main.nf --input_dir data/ --output_dir results/ --run_evaluation --
 RETrace2 supports multiple execution environments through Nextflow profiles.
 
 ### Standard (Default)
-By default, the pipeline runs with the standard profile, which has Docker enabled:
+By default, the pipeline runs with the standard profile, which uses your system's native tools without Docker or Conda.
 
 ```bash
-# This runs with Docker enabled by default
+# This runs using your locally installed packages
 nextflow run main.nf
 ```
 
-You don't need to specify `-profile` for this behavior.
+Ensure all required dependencies are installed and in your PATH.
+
+You can install the required packages from the environment.yml file:
+
+```bash
+# Install directly from the environment.yml file
+conda env create -f environment.yml
+
+# Activate the environment
+conda activate retrace2
+```
+
+Or install packages individually according to the versions specified in environment.yml.
 
 ### Docker
-To explicitly use the Docker profile:
+To use Docker containers for all tools:
 
 ```bash
 nextflow run main.nf -profile docker
 ```
+
+If you don't have Docker installed, get it from the [official website](https://docs.docker.com/get-docker/).
 
 ### Conda
 Alternatively, you can use Conda to automatically create environments with required dependencies:
@@ -133,16 +148,6 @@ nextflow run main.nf -profile conda
 ```
 
 This will automatically create and manage Conda environments based on the requirements in `environment.yml`.
-
-### Running Without Containers
-If you prefer to run without Docker or Conda (using your system's native tools), you need to:
-
-1. Ensure all required dependencies are installed and in your PATH
-2. Disable Docker and Conda when running:
-
-```bash
-nextflow run main.nf -with-docker false -with-conda false
-```
 
 ## Reference Genome Configuration
 

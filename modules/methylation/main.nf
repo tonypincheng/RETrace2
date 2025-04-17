@@ -5,7 +5,7 @@ nextflow.enable.dsl=2
 // Process 1: Quality Control
 process fastqc {
     publishDir "${params.output_dir}/fastqc", mode: 'copy'
-    container "community.wave.seqera.io/library/fastqc:0.12.1--af7a5314d5015c29"
+    container "quay.io/biocontainers/fastqc:0.12.1--hdfd78af_0"
     conda "bioconda::fastqc=0.12.1"
     
     input:
@@ -23,9 +23,9 @@ process fastqc {
 // Process 2: MultiQC Report
 process multiqc {
     publishDir "${params.output_dir}/fastqc", mode: 'copy'
-    container "community.wave.seqera.io/library/pip_multiqc:c3f2613b3e0ce82e"
+    container "quay.io/biocontainers/multiqc:1.28--pyhdfd78af_0"
     conda "bioconda::multiqc=1.28"
-    
+   
     input:
     path('fastqc/*')
     
@@ -42,9 +42,9 @@ process multiqc {
 // Process 3: Read Preprocessing
 process preprocess {
     publishDir "${params.output_dir}/trimmed", mode: 'copy'
-    container "quay.io/biocontainers/trim-galore:0.6.10--hdfd78af_0"
+    container "community.wave.seqera.io/library/trim-galore:0.6.10--1bf8ca4e1967cd18"
     conda "bioconda::trim-galore=0.6.10"
-    
+
     input:
     tuple val(sample_id), path(reads)
     
@@ -68,8 +68,8 @@ process preprocess {
 // Process 4: Run Methylpy
 process methylpy {
     publishDir "${params.output_dir}/methylpy", mode: 'copy'
-    container "quay.io/biocontainers/methylpy:1.4.5--py39h38f01e4_0"
-    conda "bioconda::methylpy=1.4.5"
+    container "community.wave.seqera.io/library/pip_methylpy:ae44180dc4227f32"
+    conda "bioconda::methylpy=1.4.7"
     
     input:
     tuple val(sample_id), path(trimmed_reads)
@@ -79,37 +79,23 @@ process methylpy {
     path("${sample_id}/*"), emit: results
     
     script:
-    def cpus = task.cpus ?: 1
-    def genomes_base = params.genomes_base ?: "/path/to/reference/genomes"
-    def genome = params.genome ?: "mm39"
-    
-    // For testing purposes, create mock files if not running for real
-    def test_mode = params.test_mode ?: false
-    
-    if (test_mode) {
-        """
-        mkdir -p ${sample_id}
-        echo "Mock methylpy run for ${sample_id}" > ${sample_id}.log
-        echo "Mock results" > ${sample_id}/results.txt
-        """
-    } else {
-        """
-        methylpy single-end-pipeline \
-            --read-files ${trimmed_reads} \
-            --sample ${sample_id} \
-            --forward-ref ${genomes_base}/${genome}/methylpl-ref/${genome}_f \
-            --reverse-ref ${genomes_base}/${genome}/methylpl-ref/${genome}_r \
-            --ref-fasta ${genomes_base}/${genome}/raw_fasta/${genome}.fa \
-            --num-procs ${cpus} \
-            --remove-clonal False \
-            --min-qual-score 30 \
-            --trim-reads False \
-            --path-to-picard="picard" \
-            --path-to-output . \
-            > ${sample_id}.log 2>&1
-        """
-    }
+    """
+    methylpy single-end-pipeline \
+        --read-files ${trimmed_reads} \
+        --sample ${sample_id} \
+        --forward-ref ${genomes_base}/${genome}/methylpl-ref/${genome}_f \
+        --reverse-ref ${genomes_base}/${genome}/methylpl-ref/${genome}_r \
+        --ref-fasta ${genomes_base}/${genome}/raw_fasta/${genome}.fa \
+        --num-procs task.cpus \
+        --remove-clonal False \
+        --min-qual-score 30 \
+        --trim-reads False \
+        --path-to-picard="picard" \
+        --path-to-output . \
+        > ${sample_id}.log 2>&1
+    """
 }
+
 
 // Process 5: Analyze methylpy output and generate summary statistics
 process analyze_methylpy_stats {
@@ -148,10 +134,10 @@ workflow METHYLATION {
     multiqc(fastqc.out.fastqc_results.collect().ifEmpty([]))
     
     // Run preprocessing on methylation reads
-    // preprocess(reads)
+    preprocess(reads)
     
     // // Run methylpy
-    // methylpy_results = methylpy(preprocess.out.trimmed_reads)
+    methylpy_results = methylpy(preprocess.out.trimmed_reads)
     
     // // Analyze methylpy output and stats
     // stats = analyze_methylpy_stats(methylpy_results.log_file.collect(), methylpy_results.results)
