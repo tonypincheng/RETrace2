@@ -24,6 +24,10 @@ params.genome = "mm39"
 params.download_reference = false
 params.bwa_index_path = null
 
+// Methylation reference parameters
+params.methylpy_ref = null
+params.methylpy_ref_fasta = null
+
 // Optional analysis parameters
 params.run_bootstrap = false
 params.run_evaluation = false
@@ -86,6 +90,8 @@ def helpMessage() {
       --run_methylation Run methylation analysis (default: ${params.run_methylation})
       --methylation_input_dir Directory containing methylation FASTQ files (default: ${params.methylation_input_dir})
       --methylation_fastq_pattern Pattern to match methylation FASTQ files (default: ${params.methylation_fastq_pattern})
+      --methylpy_ref    Path prefix for methylpy reference files [optional]. If not specified, will use ${params.genomes_base}/${params.genome}/methylpl-ref/${params.genome}
+      --methylpy_ref_fasta Path to reference FASTA for methylpy [optional]. If not specified, will use ${params.genomes_base}/${params.genome}/raw_fasta/${params.genome}.fa
       --help            Display this help message
     """
 }

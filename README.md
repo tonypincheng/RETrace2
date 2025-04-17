@@ -167,8 +167,9 @@ genomes_base/
 │   │   └── mm39.fa.fai          
 │   ├── bwa-index/         # BWA index files
 │   │   └── mm39.fa        
-│   └── methylpy-ref/      # Methylation references
-│       └── ...
+│   └── methylpl-ref/      # Methylation references
+│       └── mm39_f         # Forward methylation reference
+│       └── mm39_r         # Reverse methylation reference
 ├── hg38/
 │   └── ...
 ```
@@ -184,13 +185,21 @@ nextflow run main.nf --genomes_base /path/to/genomes_base --genome hg38
 Alternatively, specify reference files directly:
 
 ```bash
+# For BWA alignment
 nextflow run main.nf --bwa_index_path /path/to/specific/reference.fa
+
+# For methylation analysis
+nextflow run main.nf --run_methylation \
+                    --methylpy_ref /path/to/methylation/reference_prefix \
+                    --methylpy_ref_fasta /path/to/reference.fa
 ```
 
 This option overrides the standard directory structure and is useful for:
 - Custom or non-standard reference genomes
 - References located in different directories
 - Quick testing with specific reference files
+
+For methylation analysis, the `--methylpy_ref` parameter specifies the prefix path for both forward and reverse methylation references. The pipeline will automatically append "_f" and "_r" to this prefix to locate the forward and reverse reference files, respectively.
 
 ## Contributing
 

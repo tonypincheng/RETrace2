@@ -79,15 +79,17 @@ process methylpy {
     path("allc/*"), emit: allc
     
     script:
+    def ref_prefix = params.methylpy_ref ?: "${params.genomes_base}/${params.genome}/methylpl-ref/${params.genome}"
+    def ref_fasta = params.methylpy_ref_fasta ?: "${params.genomes_base}/${params.genome}/raw_fasta/${params.genome}.fa"
     """
     mkdir -p log
 
     methylpy single-end-pipeline \
         --read-files ${trimmed_reads} \
         --sample ${sample_id} \
-        --forward-ref ${params.genomes_base}/${params.genome}/methylpl-ref/${params.genome}_f \
-        --reverse-ref ${params.genomes_base}/${params.genome}/methylpl-ref/${params.genome}_r \
-        --ref-fasta ${params.genomes_base}/${params.genome}/raw_fasta/${params.genome}.fa \
+        --forward-ref ${ref_prefix}_f \
+        --reverse-ref ${ref_prefix}_r \
+        --ref-fasta ${ref_fasta} \
         --num-procs ${task.cpus} \
         --remove-clonal False \
         --min-qual-score 30 \
