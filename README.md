@@ -148,7 +148,7 @@ nextflow run main.nf -with-docker false -with-conda false
 
 RETrace2 provides flexible options for specifying reference genomes:
 
-### Option 1: Standard Directory Structure (Recommended for Research Groups)
+### Option 1: Standard Directory Structure
 
 The pipeline uses a standardized directory structure for organizing reference genomes:
 
@@ -172,7 +172,7 @@ Use this structure with:
 nextflow run main.nf --genomes_base /path/to/genomes_base --genome hg38
 ```
 
-### Option 2: Direct Reference Path (Recommended for Custom Setups)
+### Option 2: Direct Reference Path
 
 Alternatively, specify reference files directly:
 
