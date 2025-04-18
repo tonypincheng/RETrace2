@@ -104,4 +104,7 @@ workflow MAPPING {
     
     // Align reads
     BWA_MEM(TRIM_GALORE.out.trimmed_reads)
+
+    emit:
+    bam = BWA_MEM.out.bam
 } 
