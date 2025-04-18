@@ -58,22 +58,6 @@ The repository includes small test datasets (~60MB total) in the `data/` directo
 
 For details about the test data, see the [data/README.md](data/README.md) file.
 
-## Development Status
-
-### Current Development
-- [x] Basic pipeline structure
-- [x] Module organization
-- [x] Configuration setup
-- [ ] HipSTR implementation
-- [ ] Tree building implementation
-- [ ] Optional modules implementation
-
-### Planned Features
-- [ ] Documentation
-- [ ] Testing framework
-- [x] Example datasets
-- [ ] Container support
-
 ## Getting Started
 
 ### Prerequisites
