@@ -8,6 +8,8 @@ A Nextflow-based bioinformatics pipeline for RETrace2 analysis.
 ## Overview
 
 RETrace2 is a comprehensive pipeline for processing and analyzing sequencing data to reconstruct single-cell phylogenetic trees using somatic microsatellite mutations. It integrates quality control, alignment, microsatellite genotype calling, and tree reconstruction into a streamlined workflow.
+<br>
+
 
 ## Features
 
@@ -21,6 +23,8 @@ RETrace2 is a comprehensive pipeline for processing and analyzing sequencing dat
   - Tree bootstrapping
   - Tree accuracy evaluation (with ground truth)
   - Methylation analysis for cell type inference
+<br>
+
 
 ## Pipeline Structure
 
@@ -38,6 +42,8 @@ RETrace2/
 ├── main.nf               # Main pipeline
 └── nextflow.config      # Pipeline configuration
 ```
+<br>
+
 
 ## Test Data
 
@@ -57,6 +63,8 @@ The repository includes small test datasets (~60MB total) in the `data/` directo
 - Sufficient data to test the pipeline's methylation analysis functionality
 
 For details about the test data, see the [data/README.md](data/README.md) file.
+<br>
+
 
 ## Getting Started
 
@@ -91,6 +99,7 @@ nextflow run main.nf --input_dir data/ --output_dir results/ --run_bootstrap
 nextflow run main.nf --input_dir data/ --output_dir results/ --run_evaluation --ground_truth truth.nwk
 ```
 <br>
+
 
 ## Environments
 RETrace2 supports multiple execution environments through Nextflow profiles.
@@ -132,6 +141,8 @@ nextflow run main.nf -profile conda
 ```
 
 This will automatically create and manage Conda environments based on the requirements in `environment.yml`.
+<br>
+
 
 ## Reference Genome Configuration
 
@@ -182,6 +193,8 @@ This option overrides the standard directory structure and is useful for:
 - Quick testing with specific reference files
 
 For methylation analysis, the `--methylpy_ref` parameter specifies the prefix path for both forward and reverse methylation references. The pipeline will automatically append "_f" and "_r" to this prefix to locate the forward and reverse reference files, respectively.
+<br>
+
 
 ## Contributing
 
@@ -190,10 +203,14 @@ This project is under active development. Contributions are welcome! Please:
 2. Create a feature branch
 3. Make your changes
 4. Submit a pull request
+<br>
+
 
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+<br>
+
 
 ## Contact
 
