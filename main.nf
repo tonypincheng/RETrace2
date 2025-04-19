@@ -13,7 +13,7 @@ include { METHYLATION } from './modules/methylation/main.nf' optional params.run
 // Pipeline parameters
 params.input_dir = "data/MSH2"
 params.output_dir = "results/"
-params.fastq_pattern = "*.fastq.gz"
+params.fastq_pattern = "MS*.fastq.gz"
 params.threads = 30
 params.memory = '100.GB'
 params.help = false
@@ -45,7 +45,7 @@ if (params.run_methylation) {
 params.min_qual = 0.9
 params.min_reads = 10
 params.max_stutter = 1.0
-params.target_bed = "${baseDir}/resources/${params.genome}_microsatellites.bed"
+params.target_bed = "resources/targets/mm39/RETrace2.mm39.1nt10-30bp.92460targets169818probes.bed"
 
 // Help message
 def helpMessage() {

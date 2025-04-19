@@ -48,7 +48,7 @@ RETrace2/
 
 ## Test Data
 
-The repository includes small test datasets (~60MB total) in the `data/` directory:
+The repository includes small test datasets in the `data/` directory:
 
 ### HCT116 Human Cell Line Data
 - 6 FASTQ files with ~100,000 reads each
@@ -58,13 +58,13 @@ The repository includes small test datasets (~60MB total) in the `data/` directo
 - Sufficient data to test the pipeline's basic functionality and ground truth validation
 
 ### MSH2 Mouse Data
-- FASTQ files with ~100,000 reads each
-- Includes both microsatellite (MS) and methylation (Methyl) libraries
+- 6 FASTQ files with ~100,000 reads each
+- Includes both microsatellite and methylation libraries
 - Designed for testing dual-omic pipeline capabilities
 - Sufficient data to test the pipeline's methylation analysis functionality
 
 For details about the test data, see the [data/README.md](data/README.md) file.
-<br>
+<br><br>
 
 
 ## Getting Started
@@ -86,18 +86,15 @@ git clone https://github.com/tonypincheng/retrace2.git
 cd retrace2
 ```
 
-### Usage
+### Example Usage
 ```bash
 # Run core pipeline
-nextflow run main.nf --input_dir data/ --output_dir results/
-```
-```bash
-# Run with bootstrapping
-nextflow run main.nf --input_dir data/ --output_dir results/ --run_bootstrap
-```
-```bash
-# Run with evaluation
-nextflow run main.nf --input_dir data/ --output_dir results/ --run_evaluation --ground_truth truth.nwk
+nextflow run main.nf \
+          --input_dir data/MSH2 \
+          --fastq_pattern = "MS*.fastq.gz"
+          --output_dir results/ \
+          --genomes_base /path/to/reference/genomes \
+          --target_bed resources/targets/mm39/RETrace2.mm39.1nt10-30bp.92460targets169818probes.bed
 ```
 <br>
 
@@ -106,7 +103,7 @@ nextflow run main.nf --input_dir data/ --output_dir results/ --run_evaluation --
 RETrace2 supports multiple execution environments through Nextflow profiles.
 
 ### Standard (Default)
-By default, the pipeline runs with the standard profile, which uses your system's native tools without Docker or Conda.
+By default, the pipeline runs using your system's native tools without Docker or Conda.
 
 ```bash
 # This runs using your locally installed packages
