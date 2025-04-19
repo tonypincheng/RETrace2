@@ -52,7 +52,7 @@ def helpMessage() {
     Mandatory arguments:
       --input_dir       Directory containing input FASTQ files (default: ${params.input_dir})
       --fastq_pattern   Pattern to match FASTQ files (default: ${params.fastq_pattern})
-      --genome_base    Directory containing reference genomes (default: ${params.genome_base})
+      --genome_base     Directory containing reference genomes (default: ${params.genome_base})
       --genome          Reference genome: 'mm39' or 'hg38' (default: ${params.genome})
       --target_bed      BED file with targetmicrosatellite regions (default: ${params.target_bed})
     
@@ -153,12 +153,7 @@ workflow {
     MAPPING(input_ch)
     STATS(MAPPING.out.bam)
     //HIPSTR(MAPPING.out.bam)
-    //PHYLO(HIPSTR.out.vcf)
-    
-    // Capture main outputs
-    //tree_ch = PHYLO.out.tree
-    //matrix_ch = PHYLO.out.matrix
-    //stats_ch = PHYLO.out.stats
+    //PHYLO(HIPSTR.out.vcf)    
     
     // // Optional analyses
     // if (params.run_bootstrap) {
