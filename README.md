@@ -90,9 +90,7 @@ nextflow run main.nf --input_dir data/ --output_dir results/ --run_bootstrap
 # Run with evaluation
 nextflow run main.nf --input_dir data/ --output_dir results/ --run_evaluation --ground_truth truth.nwk
 ```
-
-<br><br>
-
+<br>
 
 ## Environments
 RETrace2 supports multiple execution environments through Nextflow profiles.
