@@ -92,7 +92,7 @@ nextflow run main.nf --input_dir data/ --output_dir results/ --run_evaluation --
 ```
 
 
-## Execution Environments
+## Environments
 RETrace2 supports multiple execution environments through Nextflow profiles.
 
 ### Standard (Default)
@@ -102,8 +102,6 @@ By default, the pipeline runs with the standard profile, which uses your system'
 # This runs using your locally installed packages
 nextflow run main.nf
 ```
-
-Ensure all required dependencies are installed and in your PATH.
 
 You can install the required packages from the environment.yml file:
 
