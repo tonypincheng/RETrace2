@@ -1,6 +1,7 @@
 # RETrace2
 
 > ⚠️ **Under Active Development** ⚠️
+
 > This pipeline is currently under development. Features and documentation may change.
 
 A Nextflow-based bioinformatics pipeline for RETrace2 analysis.
@@ -193,7 +194,7 @@ This option overrides the standard directory structure and is useful for:
 - Quick testing with specific reference files
 
 For methylation analysis, the `--methylpy_ref` parameter specifies the prefix path for both forward and reverse methylation references. The pipeline will automatically append "_f" and "_r" to this prefix to locate the forward and reverse reference files, respectively.
-<br>
+<br><br>
 
 
 ## Contributing
@@ -203,7 +204,6 @@ This project is under active development. Contributions are welcome! Please:
 2. Create a feature branch
 3. Make your changes
 4. Submit a pull request
-<br>
 
 
 ## License
