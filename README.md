@@ -86,7 +86,7 @@ git clone https://github.com/tonypincheng/retrace2.git
 cd retrace2
 ```
 
-### Example Usage
+### Usage
 ```bash
 # Run core pipeline
 nextflow run main.nf \
@@ -94,6 +94,7 @@ nextflow run main.nf \
           --fastq_pattern = "MS*.fastq.gz"
           --output_dir results/ \
           --genomes_base /path/to/reference/genomes \
+          --genomes mm39 \
           --target_bed resources/targets/mm39/RETrace2.mm39.1nt10-30bp.92460targets169818probes.bed
 ```
 
