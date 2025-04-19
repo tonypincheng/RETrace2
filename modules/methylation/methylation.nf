@@ -79,8 +79,8 @@ process methylpy {
     path("allc/*"), emit: allc
     
     script:
-    def ref_prefix = params.methylpy_ref ?: "${params.genomes_base}/${params.genome}/methylpl-ref/${params.genome}"
-    def ref_fasta = params.ref_fasta ?: "${params.genomes_base}/${params.genome}/raw_fasta/${params.genome}.fa"
+    def ref_prefix = params.methylpy_ref ?: "${params.genome_base}/${params.genome}/methylpl-ref/${params.genome}"
+    def ref_fasta = params.ref_fasta ?: "${params.genome_base}/${params.genome}/raw_fasta/${params.genome}.fa"
     """
     mkdir -p log
 
@@ -153,8 +153,3 @@ workflow METHYLATION {
     // summary_stats = stats.summary_stats
     // summary_plot = stats.summary_plot
 }
-
-// Add this at the end of the file
-workflow.onComplete {
-    println "Methylation module completed"
-} 

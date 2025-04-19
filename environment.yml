@@ -11,6 +11,8 @@ dependencies:
   - trim-galore=0.6.10
   - methylpy=1.4.7
   - bwa=0.7.19
+  - pysam=0.22.1
+  - samtools=1.21
   # - samtools
   # - bedtools
   # - pandas

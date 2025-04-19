@@ -35,7 +35,7 @@ RETrace2/
 ├── data/                # test data
 ├── modules/             # Nextflow modules
 │   ├── mapping/         # Read trimming and alignment
-│   ├── stats/           # Count tagets 
+│   ├── stats/           # Count targets 
 │   ├── hipstr/          # Microsatellite calling
 │   ├── phylo/           # Phylogenetic tree reconstruction
 │   ├── bootstrap/       # Tree bootstrapping analysis
@@ -80,6 +80,8 @@ For details about the test data, see the [data/README.md](data/README.md) file.
 - trim-galore=0.6.10
 - methylpy=1.4.7
 - bwa=0.7.19
+- pysam=0.22.1
+- samtools=1.21
 
 > **Note:** You can also use Docker or Conda (see below) to handle dependencies automatically.
 
@@ -96,8 +98,8 @@ nextflow run main.nf \
           --input_dir data/MSH2 \
           --fastq_pattern = "MS*.fastq.gz"
           --output_dir results/ \
-          --genomes_base /path/to/reference/genomes \
-          --genomes mm39 \
+          --genome_base /path/to/genome_base \
+          --genome mm39 \
           --target_bed resources/targets/mm39/RETrace2.mm39.1nt10-30bp.92460targets169818probes.bed
 ```
 
@@ -131,7 +133,8 @@ conda activate retrace2
 
 Or install packages individually according to the versions specified in environment.yml.
 
-### Docker
+### Docker 
+> ⚠️ **Under Active Development** ⚠️
 To use Docker containers for all tools:
 
 ```bash
@@ -160,7 +163,7 @@ RETrace2 provides flexible options for specifying reference genomes:
 The pipeline uses a standardized directory structure for organizing reference genomes:
 
 ```
-genomes_base/
+genome_base/
 ├── mm39/                  # Genome name
 │   ├── raw_fasta/         
 │   │   └── mm39.fa        # raw fasta files
@@ -177,7 +180,7 @@ genomes_base/
 Use this structure with:
 
 ```bash
-nextflow run main.nf --genomes_base /path/to/genomes_base --genome hg38
+nextflow run main.nf --genome_base /path/to/genome_base --genome hg38
 ```
 
 ### Option 2: Direct Reference Path

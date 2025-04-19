@@ -66,7 +66,7 @@ process TRIM_GALORE {
 process BWA_MEM {
     publishDir "${params.output_dir}/mapping/bam", mode: 'copy'
     container "quay.io/biocontainers/bwa:0.7.19--h577a1d6_0"
-    conda "bioconda::bwa=0.7.19"
+    conda "bioconda::bwa=0.7.19 bioconda::samtools=1.21"
 
     input:
     tuple val(sample_id), path(trimmed_reads)
@@ -76,8 +76,8 @@ process BWA_MEM {
     path("${sample_id}.stats"), emit: stats
     
     script:
-    // Use direct reference path if provided, otherwise build from genomes_base structure
-    def reference = params.bwa_index_path ?: "${params.genomes_base}/${params.genome}/bwa-index/${params.genome}.fa"
+    // Use direct reference path if provided, otherwise build from genome_base structure
+    def reference = params.bwa_index_path ?: "${params.genome_base}/${params.genome}/bwa-index/${params.genome}.fa"
     """
     bwa mem -t ${task.cpus} ${reference} ${trimmed_reads} | \
     samtools sort -@${task.cpus} -o ${sample_id}.sorted.bam

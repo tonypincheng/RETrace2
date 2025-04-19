@@ -17,7 +17,7 @@ process HIPSTR_CALLING {
     # Call microsatellites using Python wrapper
     python $baseDir/scripts/hipstr/call_hipstr.py \
         --bam ${bam} \
-        --reference ${params.genomes_base}/${params.genome}/raw_fasta/${params.genome}.fa \
+        --reference ${params.genome_base}/${params.genome}/raw_fasta/${params.genome}.fa \
         --regions ${params.target_bed} \
         --output ${sample_id}.vcf \
         --min-reads ${params.min_reads} \

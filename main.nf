@@ -4,16 +4,15 @@ nextflow.enable.dsl=2
 
 // Pipeline parameters
 params.input_dir = "data/MSH2"
-params.output_dir = "results/"
+params.output_dir = "results"
 params.fastq_pattern = "MS*.fastq.gz"
-params.target_bed = "resources/targets/mm39/RETrace2.mm39.1nt10-30bp.92460targets169818probes.bed"
+params.target_bed = "${baseDir}/resources/targets/mm39/RETrace2.mm39.1nt10-30bp.92460targets169818probes.bed"
 params.threads = 30
 params.memory = '100.GB'
 
 // Reference genome parameters
-params.genomes_base = "/path/to/reference/genomes"
+params.genome_base = "/path/to/reference/genomes"
 params.genome = "mm39"
-params.download_reference = false
 params.ref_fasta = null
 params.bwa_index_path = null
 
@@ -53,7 +52,7 @@ def helpMessage() {
     Mandatory arguments:
       --input_dir       Directory containing input FASTQ files (default: ${params.input_dir})
       --fastq_pattern   Pattern to match FASTQ files (default: ${params.fastq_pattern})
-      --genomes_base    Directory containing reference genomes (default: ${params.genomes_base})
+      --genome_base    Directory containing reference genomes (default: ${params.genome_base})
       --genome          Reference genome: 'mm39' or 'hg38' (default: ${params.genome})
       --target_bed      BED file with targetmicrosatellite regions (default: ${params.target_bed})
     
@@ -62,9 +61,8 @@ def helpMessage() {
       --threads         Number of CPU threads to use (default: ${params.threads})
       --memory          Memory to allocate for processes (default: ${params.memory})
 
-      --bwa_index_path  Path to BWA index [optional]. If not specified, will use ${params.genomes_base}/${params.genome}/bwa-index/${params.genome}.fa
-      --download_reference  Download reference genome if not available (default: ${params.download_reference})
-      --ref_fasta Path to reference FASTA [optional]. If not specified, will use ${params.genomes_base}/${params.genome}/raw_fasta/${params.genome}.fa
+      --bwa_index_path  Path to BWA index [optional]. If not specified, will use ${params.genome_base}/${params.genome}/bwa-index/${params.genome}.fa
+      --ref_fasta Path to reference FASTA [optional]. If not specified, will use ${params.genome_base}/${params.genome}/raw_fasta/${params.genome}.fa
       
       --min_qual        Minimum quality score for HipSTR (default: ${params.min_qual})
       --min_reads       Minimum number of reads for HipSTR (default: ${params.min_reads})
@@ -79,7 +77,7 @@ def helpMessage() {
       --run_methylation Run methylation analysis (default: ${params.run_methylation})
       --methylation_input_dir Directory containing methylation FASTQ files (default: ${params.methylation_input_dir})
       --methylation_fastq_pattern Pattern to match methylation FASTQ files (default: ${params.methylation_fastq_pattern})
-      --methylpy_ref    Path prefix for methylpy reference files [optional]. If not specified, will use ${params.genomes_base}/${params.genome}/methylpl-ref/${params.genome}
+      --methylpy_ref    Path prefix for methylpy reference files [optional]. If not specified, will use ${params.genome_base}/${params.genome}/methylpl-ref/${params.genome}
       
       --help            Display this help message
     """
@@ -97,8 +95,8 @@ if (!file(params.input_dir).exists()) {
     exit 1
 }
 
-if (!file(params.genomes_base).exists()) {
-    log.error "Reference genome base directory '${params.genomes_base}' does not exist or is not accessible!"
+if (!file(params.genome_base).exists()) {
+    log.error "Reference genome base directory '${params.genome_base}' does not exist or is not accessible!"
     exit 1
 }
 
@@ -130,9 +128,13 @@ include { MAPPING } from './modules/mapping/mapping.nf'
 include { STATS } from './modules/stats/stats.nf'
 //include { HIPSTR } from './modules/hipstr/hipstr.nf'
 //include { PHYLO } from './modules/phylo/phylo.nf'
+
+// Conditionally include METHYLATION module
+if (params.run_methylation) {
+    include { METHYLATION } from './modules/methylation/methylation.nf'
+}
 //include { BOOTSTRAP } from './modules/bootstrap/bootstrap.nf' 
 //include { EVALUATION } from './modules/evaluation/evaluation.nf' 
-include { METHYLATION } from './modules/methylation/methylation.nf' 
 
 
 // Input channel for FASTQ files
@@ -201,8 +203,9 @@ workflow.onComplete {
         Results are available in: ${params.output_dir}
         
         Core results:
-        - Phylogenetic tree: ${params.output_dir}/phylo/phylogenetic_tree.nwk
-        - Distance matrix: ${params.output_dir}/phylo/distance_matrix.txt
+        - Microsatellite FASTQC: ${params.output_dir}/mapping/fastqc/
+        - Microsatellite BAM files: ${params.output_dir}/mapping/bam/
+        - Sample stats: ${params.output_dir}/stats/
         """
         
         if (params.run_bootstrap) {
@@ -223,10 +226,9 @@ workflow.onComplete {
         if (params.run_methylation) {
             log.info """
         Methylation results:
-        - Methylation profiles: ${params.output_dir}/methylation/
-        - Methylation stats: ${params.output_dir}/methylation/methylation_stats.txt
-        - Methylation summary: ${params.output_dir}/methylation/methylation_summary.txt
-        - Methylation plot: ${params.output_dir}/methylation/methylation_plot.png
+        - Methylation FASTQC: ${params.output_dir}/methylation/fastqc/
+        - Methylation allc files: ${params.output_dir}/methylation/allc/
+
             """
         }
         

@@ -52,7 +52,7 @@ class MicrosatelliteCounter:
         """Write statistics to output file."""
         
         with open(output_file, 'w') as f_out:
-            f_out.write("target_id\tdepth\tcovered_${self.min_depth}X\n")
+            f_out.write(f"target_id\tdepth\tcovered_{self.min_depth}X\n")
             
             for target_id, depth in sorted(targets_dict.items()):
                 covered = "True" if depth >= self.min_depth else "False"
