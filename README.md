@@ -91,8 +91,7 @@ nextflow run main.nf --input_dir data/ --output_dir results/ --run_bootstrap
 nextflow run main.nf --input_dir data/ --output_dir results/ --run_evaluation --ground_truth truth.nwk
 ```
 
-
-
+<br><br>
 
 
 ## Environments
