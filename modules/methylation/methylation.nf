@@ -118,7 +118,7 @@ process analyze_methylpy_stats {
     
     script:
     """
-    python modules/methylation/analyze_methylpy_stats.py \
+    python ${task.moduleDir}/analyze_methylpy_stats.py \
         --log ${log_files} \
         --tsv-dir . \
         --output-dir .
