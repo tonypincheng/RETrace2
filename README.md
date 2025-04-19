@@ -31,16 +31,19 @@ RETrace2 is a comprehensive pipeline for processing and analyzing sequencing dat
 
 ```
 RETrace2/
-├── bin/                    # Utility scripts
-├── modules/               # Nextflow modules
-│   ├── mapping/          # Read mapping and alignment
+├── bin/                 # Utility scripts
+├── data/                # test data
+├── modules/             # Nextflow modules
+│   ├── mapping/         # Read trimming and alignment
+│   ├── stats/           # Count tagets 
 │   ├── hipstr/          # Microsatellite calling
 │   ├── phylo/           # Phylogenetic tree reconstruction
 │   ├── bootstrap/       # Tree bootstrapping analysis
 │   ├── methylation/     # Methylation analysis
 │   └── evaluation/      # Tree accuracy evaluation
-├── scripts/              # Supporting scripts
-├── main.nf               # Main pipeline
+├── resources/           # Probe target bed
+├── scripts/             # Supporting scripts
+├── main.nf              # Main pipeline
 └── nextflow.config      # Pipeline configuration
 ```
 <br>
