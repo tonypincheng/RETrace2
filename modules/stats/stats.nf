@@ -2,6 +2,13 @@
 
 nextflow.enable.dsl=2
 
+// Default parameter values (will be overridden by main workflow values)
+params.output_dir = params.output_dir ?: "results/"
+params.target_bed = params.target_bed ?: "default_targets.bed"
+params.genomes_base = params.genomes_base ?: "/path/to/reference/genomes"
+params.genome = params.genome ?: "mm39"
+params.bwa_index_path = params.bwa_index_path ?: null
+
 process count_targets {
     publishDir "${params.output_dir}/stats/ms_counts", mode: 'copy'
     //container "quay.io/biocontainers/bedtools:2.30.0--h94655ef_1"
@@ -33,4 +40,6 @@ workflow STATS {
     // Count microsatellites targets
     count_targets(bam)
     
+    emit:
+    ms_counts = count_targets.out
 }

@@ -2,21 +2,25 @@
 
 nextflow.enable.dsl=2
 
-
 // Pipeline parameters
 params.input_dir = "data/MSH2"
 params.output_dir = "results/"
 params.fastq_pattern = "MS*.fastq.gz"
+params.target_bed = "resources/targets/mm39/RETrace2.mm39.1nt10-30bp.92460targets169818probes.bed"
 params.threads = 30
 params.memory = '100.GB'
-params.help = false
 
 // Reference genome parameters
 params.genomes_base = "/path/to/reference/genomes"
 params.genome = "mm39"
 params.download_reference = false
-params.bwa_index_path = null
 params.ref_fasta = null
+params.bwa_index_path = null
+
+// HipSTR parameters
+params.min_qual = 0.9
+params.min_reads = 10
+params.max_stutter = 1.0
 
 // Optional analysis parameters
 params.run_bootstrap = false
@@ -30,11 +34,9 @@ params.methylpy_ref = null
 params.methylation_input_dir = "data/MSH2/"
 params.methylation_fastq_pattern = "Methyl*.fastq.gz"
 
-// Stats and HipSTR parameters
-params.target_bed = "resources/targets/mm39/RETrace2.mm39.1nt10-30bp.92460targets169818probes.bed"
-params.min_qual = 0.9
-params.min_reads = 10
-params.max_stutter = 1.0
+// System parameters
+params.help = false
+
 
 
 // Help message
@@ -90,13 +92,13 @@ if (params.help) {
 }
 
 // Check for required parameters
-if (!params.input_dir) {
-    log.error "Input directory not specified!"
+if (!file(params.input_dir).exists()) {
+    log.error "Input directory '${params.input_dir}' does not exist or is not accessible!"
     exit 1
 }
 
-if (!params.genomes_base) {
-    log.error "Reference genome base directory (--genomes_base) not specified!"
+if (!file(params.genomes_base).exists()) {
+    log.error "Reference genome base directory '${params.genomes_base}' does not exist or is not accessible!"
     exit 1
 }
 
@@ -125,7 +127,8 @@ Optional analyses  :
 
 // Include modules
 include { MAPPING } from './modules/mapping/mapping.nf'
-include { HIPSTR } from './modules/hipstr/hipstr.nf'
+include { STATS } from './modules/stats/stats.nf'
+//include { HIPSTR } from './modules/hipstr/hipstr.nf'
 //include { PHYLO } from './modules/phylo/phylo.nf'
 //include { BOOTSTRAP } from './modules/bootstrap/bootstrap.nf' 
 //include { EVALUATION } from './modules/evaluation/evaluation.nf' 
@@ -146,7 +149,8 @@ if (params.run_methylation) {
 workflow {
     // Core pipeline
     MAPPING(input_ch)
-    HIPSTR(MAPPING.out.bam)
+    STATS(MAPPING.out.bam)
+    //HIPSTR(MAPPING.out.bam)
     //PHYLO(HIPSTR.out.vcf)
     
     // Capture main outputs
@@ -154,28 +158,28 @@ workflow {
     //matrix_ch = PHYLO.out.matrix
     //stats_ch = PHYLO.out.stats
     
-    // Optional analyses
-    if (params.run_bootstrap) {
-        BOOTSTRAP(tree_ch, HIPSTR.out.vcf)
-        bootstrap_support_ch = BOOTSTRAP.out.support
-        bootstrap_trees_ch = BOOTSTRAP.out.trees
-    }
+    // // Optional analyses
+    // if (params.run_bootstrap) {
+    //     BOOTSTRAP(tree_ch, HIPSTR.out.vcf)
+    //     bootstrap_support_ch = BOOTSTRAP.out.support
+    //     bootstrap_trees_ch = BOOTSTRAP.out.trees
+    // }
     
-    if (params.run_evaluation) {
-        if (params.ground_truth) {
-            EVALUATION(tree_ch, file(params.ground_truth))
-            evaluation_results_ch = EVALUATION.out.results
-        } else {
-            log.warn "Evaluation requested but no ground truth provided. Skipping evaluation."
-        }
-    }
+    // if (params.run_evaluation) {
+    //     if (params.ground_truth) {
+    //         EVALUATION(tree_ch, file(params.ground_truth))
+    //         evaluation_results_ch = EVALUATION.out.results
+    //     } else {
+    //         log.warn "Evaluation requested but no ground truth provided. Skipping evaluation."
+    //     }
+    // }
     
     if (params.run_methylation) {
         METHYLATION(methylation_input_ch)
-        methylation_results_ch = METHYLATION.out.results
-        methylation_stats_ch = METHYLATION.out.detailed_stats
-        methylation_summary_ch = METHYLATION.out.summary_stats
-        methylation_plot_ch = METHYLATION.out.summary_plot
+        // methylation_results_ch = METHYLATION.out.results
+        // methylation_stats_ch = METHYLATION.out.detailed_stats
+        // methylation_summary_ch = METHYLATION.out.summary_stats
+        // methylation_plot_ch = METHYLATION.out.summary_plot
     }
     
     // Print workflow completion message
