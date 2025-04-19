@@ -2,7 +2,7 @@
 
 nextflow.enable.dsl=2
 
-process BOOTSTRAP {
+process bootstrap {
     tag "bootstrap"
     publishDir "${params.output_dir}/bootstrap", mode: 'copy'
     
@@ -35,7 +35,7 @@ workflow BOOTSTRAP {
     
     main:
     // Run bootstrap analysis
-    bootstrap_results = BOOTSTRAP(tree, vcf_files)
+    bootstrap_results = bootstrap(tree, vcf_files)
     
     emit:
     trees = bootstrap_results.trees

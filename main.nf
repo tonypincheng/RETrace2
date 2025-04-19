@@ -3,12 +3,12 @@
 nextflow.enable.dsl=2
 
 // Include modules
-include { MAPPING } from './modules/mapping/main.nf'
-include { HIPSTR } from './modules/hipstr/main.nf'
-include { PHYLO } from './modules/phylo/main.nf'
-include { BOOTSTRAP } from './modules/bootstrap/main.nf' optional params.run_bootstrap
-include { EVALUATION } from './modules/evaluation/main.nf' optional params.run_evaluation
-include { METHYLATION } from './modules/methylation/main.nf' optional params.run_methylation
+include { MAPPING } from './modules/mapping/mapping.nf'
+include { HIPSTR } from './modules/hipstr/hipstr.nf'
+include { PHYLO } from './modules/phylo/phylo.nf'
+include { BOOTSTRAP } from './modules/bootstrap/bootstrap.nf' 
+include { EVALUATION } from './modules/evaluation/evaluation.nf' 
+include { METHYLATION } from './modules/methylation/methylation.nf' 
 
 // Pipeline parameters
 params.input_dir = "data/MSH2"
@@ -22,60 +22,57 @@ params.help = false
 params.genomes_base = "/path/to/reference/genomes"
 params.genome = "mm39"
 params.download_reference = false
+params.ref_fasta = null
 params.bwa_index_path = null
 
-// Methylation reference parameters
-params.methylpy_ref = null
-params.methylpy_ref_fasta = null
 
 // Optional analysis parameters
 params.run_bootstrap = false
-params.run_evaluation = false
-params.run_methylation = false
-params.ground_truth = null
 params.bootstrap_iterations = 100
+params.run_evaluation = false
+params.ground_truth = null
+params.run_methylation = false
 
-// If methylation is enabled, set default methylation input parameters
-if (params.run_methylation) {
-    params.methylation_input_dir = "data/methylation/"
-    params.methylation_fastq_pattern = "*.fastq.gz"
-}
 
-// HipSTR parameters
+// Methylation parameters
+params.methylpy_ref = null
+params.methylation_input_dir = "data/MSH2/"
+params.methylation_fastq_pattern = "Methyl*.fastq.gz"
+
+
+// Stats and HipSTR parameters
+params.target_bed = "resources/targets/mm39/RETrace2.mm39.1nt10-30bp.92460targets169818probes.bed"
 params.min_qual = 0.9
 params.min_reads = 10
 params.max_stutter = 1.0
-params.target_bed = "resources/targets/mm39/RETrace2.mm39.1nt10-30bp.92460targets169818probes.bed"
+
 
 // Help message
 def helpMessage() {
-    def methylationHelp = params.run_methylation ? """
-      --methylation_input_dir Directory containing methylation FASTQ files (default: ${params.methylation_input_dir})
-      --methylation_fastq_pattern Pattern to match methylation FASTQ files (default: ${params.methylation_fastq_pattern})
-    """ : ""
-    
+
     log.info"""
     ===========================================
       RETrace2 Pipeline v1.0
     ===========================================
     
     Usage:
-      nextflow run main.nf --input_dir /path/to/fastqs --output_dir /path/to/results
+      nextflow run main.nf --input_dir /path/to/fastsq --output_dir /path/to/results
     
     Mandatory arguments:
-      --input_dir      Directory containing input FASTQ files (default: ${params.input_dir})
+      --input_dir       Directory containing input FASTQ files (default: ${params.input_dir})
+      --fastq_pattern   Pattern to match FASTQ files (default: ${params.fastq_pattern})
       --genomes_base    Directory containing reference genomes (default: ${params.genomes_base})
       --genome          Reference genome: 'mm39' or 'hg38' (default: ${params.genome})
       --target_bed      BED file with targetmicrosatellite regions (default: ${params.target_bed})
     
     Optional arguments:
       --output_dir      Directory for output files (default: ${params.output_dir})
-      --fastq_pattern   Pattern to match FASTQ files (default: ${params.fastq_pattern})
       --threads         Number of CPU threads to use (default: ${params.threads})
       --memory          Memory to allocate for processes (default: ${params.memory})
 
       --bwa_index_path  Path to BWA index [optional]. If not specified, will use ${params.genomes_base}/${params.genome}/bwa-index/${params.genome}.fa
       --download_reference  Download reference genome if not available (default: ${params.download_reference})
+      --ref_fasta Path to reference FASTA [optional]. If not specified, will use ${params.genomes_base}/${params.genome}/raw_fasta/${params.genome}.fa
       
       --min_qual        Minimum quality score for HipSTR (default: ${params.min_qual})
       --min_reads       Minimum number of reads for HipSTR (default: ${params.min_reads})
@@ -91,7 +88,7 @@ def helpMessage() {
       --methylation_input_dir Directory containing methylation FASTQ files (default: ${params.methylation_input_dir})
       --methylation_fastq_pattern Pattern to match methylation FASTQ files (default: ${params.methylation_fastq_pattern})
       --methylpy_ref    Path prefix for methylpy reference files [optional]. If not specified, will use ${params.genomes_base}/${params.genome}/methylpl-ref/${params.genome}
-      --methylpy_ref_fasta Path to reference FASTA for methylpy [optional]. If not specified, will use ${params.genomes_base}/${params.genome}/raw_fasta/${params.genome}.fa
+      
       --help            Display this help message
     """
 }
