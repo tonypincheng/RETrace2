@@ -80,7 +80,7 @@ process methylpy {
     
     script:
     def ref_prefix = params.methylpy_ref ?: "${params.genomes_base}/${params.genome}/methylpl-ref/${params.genome}"
-    def ref_fasta = params.methylpy_ref_fasta ?: "${params.genomes_base}/${params.genome}/raw_fasta/${params.genome}.fa"
+    def ref_fasta = params.ref_fasta ?: "${params.genomes_base}/${params.genome}/raw_fasta/${params.genome}.fa"
     """
     mkdir -p log
 
