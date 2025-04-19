@@ -11,7 +11,7 @@ params.threads = 30
 params.memory = '100.GB'
 
 // Reference genome parameters
-params.genome_base = "/path/to/reference/genomes"
+params.genome_base = "/path/to/reference/genome_base"
 params.genome = "mm39"
 params.ref_fasta = null
 params.bwa_index_path = null
