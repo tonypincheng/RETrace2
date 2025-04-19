@@ -96,6 +96,11 @@ nextflow run main.nf \
           --genomes_base /path/to/reference/genomes \
           --target_bed resources/targets/mm39/RETrace2.mm39.1nt10-30bp.92460targets169818probes.bed
 ```
+
+```bash
+# To see all available option 
+nextflow run main.nf --help
+```
 <br>
 
 

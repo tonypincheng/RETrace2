@@ -64,18 +64,18 @@ def helpMessage() {
     
     Mandatory arguments:
       --input_dir      Directory containing input FASTQ files (default: ${params.input_dir})
+      --genomes_base    Directory containing reference genomes (default: ${params.genomes_base})
+      --genome          Reference genome: 'mm39' or 'hg38' (default: ${params.genome})
+      --target_bed      BED file with targetmicrosatellite regions (default: ${params.target_bed})
     
     Optional arguments:
       --output_dir      Directory for output files (default: ${params.output_dir})
       --fastq_pattern   Pattern to match FASTQ files (default: ${params.fastq_pattern})
       --threads         Number of CPU threads to use (default: ${params.threads})
       --memory          Memory to allocate for processes (default: ${params.memory})
-      
-      --genome          Reference genome: 'mm39' or 'hg38' (default: ${params.genome})
-      --genomes_base    Directory containing reference genomes (default: ${params.genomes_base})
+
       --bwa_index_path  Path to BWA index [optional]. If not specified, will use ${params.genomes_base}/${params.genome}/bwa-index/${params.genome}.fa
       --download_reference  Download reference genome if not available (default: ${params.download_reference})
-      --target_bed      BED file with microsatellite regions (default: ${params.target_bed})
       
       --min_qual        Minimum quality score for HipSTR (default: ${params.min_qual})
       --min_reads       Minimum number of reads for HipSTR (default: ${params.min_reads})
