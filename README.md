@@ -92,6 +92,9 @@ nextflow run main.nf --input_dir data/ --output_dir results/ --run_evaluation --
 ```
 
 
+
+
+
 ## Environments
 RETrace2 supports multiple execution environments through Nextflow profiles.
 
