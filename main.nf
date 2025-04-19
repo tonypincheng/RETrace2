@@ -2,13 +2,6 @@
 
 nextflow.enable.dsl=2
 
-// Include modules
-include { MAPPING } from './modules/mapping/mapping.nf'
-include { HIPSTR } from './modules/hipstr/hipstr.nf'
-include { PHYLO } from './modules/phylo/phylo.nf'
-include { BOOTSTRAP } from './modules/bootstrap/bootstrap.nf' 
-include { EVALUATION } from './modules/evaluation/evaluation.nf' 
-include { METHYLATION } from './modules/methylation/methylation.nf' 
 
 // Pipeline parameters
 params.input_dir = "data/MSH2"
@@ -22,9 +15,8 @@ params.help = false
 params.genomes_base = "/path/to/reference/genomes"
 params.genome = "mm39"
 params.download_reference = false
-params.ref_fasta = null
 params.bwa_index_path = null
-
+params.ref_fasta = null
 
 // Optional analysis parameters
 params.run_bootstrap = false
@@ -33,12 +25,10 @@ params.run_evaluation = false
 params.ground_truth = null
 params.run_methylation = false
 
-
 // Methylation parameters
 params.methylpy_ref = null
 params.methylation_input_dir = "data/MSH2/"
 params.methylation_fastq_pattern = "Methyl*.fastq.gz"
-
 
 // Stats and HipSTR parameters
 params.target_bed = "resources/targets/mm39/RETrace2.mm39.1nt10-30bp.92460targets169818probes.bed"
@@ -105,6 +95,12 @@ if (!params.input_dir) {
     exit 1
 }
 
+if (!params.genomes_base) {
+    log.error "Reference genome base directory (--genomes_base) not specified!"
+    exit 1
+}
+
+
 // Log pipeline info
 log.info"""
 ===========================================
@@ -126,6 +122,16 @@ Optional analyses  :
 ===========================================
 """
 
+
+// Include modules
+include { MAPPING } from './modules/mapping/mapping.nf'
+include { HIPSTR } from './modules/hipstr/hipstr.nf'
+//include { PHYLO } from './modules/phylo/phylo.nf'
+//include { BOOTSTRAP } from './modules/bootstrap/bootstrap.nf' 
+//include { EVALUATION } from './modules/evaluation/evaluation.nf' 
+include { METHYLATION } from './modules/methylation/methylation.nf' 
+
+
 // Input channel for FASTQ files
 input_ch = Channel.fromPath("${params.input_dir}/${params.fastq_pattern}", checkIfExists: true)
                    .map { file -> tuple(file.simpleName, file) }
@@ -141,12 +147,12 @@ workflow {
     // Core pipeline
     MAPPING(input_ch)
     HIPSTR(MAPPING.out.bam)
-    PHYLO(HIPSTR.out.vcf)
+    //PHYLO(HIPSTR.out.vcf)
     
     // Capture main outputs
-    tree_ch = PHYLO.out.tree
-    matrix_ch = PHYLO.out.matrix
-    stats_ch = PHYLO.out.stats
+    //tree_ch = PHYLO.out.tree
+    //matrix_ch = PHYLO.out.matrix
+    //stats_ch = PHYLO.out.stats
     
     // Optional analyses
     if (params.run_bootstrap) {
@@ -173,8 +179,9 @@ workflow {
     }
     
     // Print workflow completion message
-    tree_ch.view { "Phylogenetic tree completed: ${it}" }
+    // tree_ch.view { "Phylogenetic tree completed: ${it}" }
 }
+
 
 // Handle workflow completion
 workflow.onComplete {
