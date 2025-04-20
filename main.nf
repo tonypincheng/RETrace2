@@ -3,9 +3,8 @@
 nextflow.enable.dsl=2
 
 // Pipeline parameters
-params.input_dir = "data/MSH2"
+params.samplesheet = null
 params.output_dir = "results"
-params.fastq_pattern = "MS*.fastq.gz"
 params.target_bed = "${baseDir}/resources/targets/mm39/RETrace2.mm39.1nt10-30bp.92460targets169818probes.bed"
 params.threads = 30
 params.memory = '100.GB'
@@ -30,8 +29,6 @@ params.run_methylation = false
 
 // Methylation parameters
 params.methylpy_ref = null
-params.methylation_input_dir = "data/MSH2/"
-params.methylation_fastq_pattern = "Methyl*.fastq.gz"
 
 // System parameters
 params.help = false
@@ -47,11 +44,10 @@ def helpMessage() {
     ===========================================
     
     Usage:
-      nextflow run main.nf --input_dir /path/to/fastsq --output_dir /path/to/results
+      nextflow run main.nf --samplesheet samplesheet.csv --output_dir /path/to/results
     
     Mandatory arguments:
-      --input_dir       Directory containing input FASTQ files (default: ${params.input_dir})
-      --fastq_pattern   Pattern to match FASTQ files (default: ${params.fastq_pattern})
+      --samplesheet     CSV file specifying samples and their details (see example in assets/samplesheet.csv)
       --genome_base     Directory containing reference genomes (default: ${params.genome_base})
       --genome          Reference genome: 'mm39' or 'hg38' (default: ${params.genome})
       --target_bed      BED file with targetmicrosatellite regions (default: ${params.target_bed})
@@ -75,8 +71,6 @@ def helpMessage() {
       --ground_truth    Path to ground truth data (default: ${params.ground_truth})
       
       --run_methylation Run methylation analysis (default: ${params.run_methylation})
-      --methylation_input_dir Directory containing methylation FASTQ files (default: ${params.methylation_input_dir})
-      --methylation_fastq_pattern Pattern to match methylation FASTQ files (default: ${params.methylation_fastq_pattern})
       --methylpy_ref    Path prefix for methylpy reference files [optional]. If not specified, will use ${params.genome_base}/${params.genome}/methylpl-ref/${params.genome}
       
       --help            Display this help message
@@ -90,8 +84,13 @@ if (params.help) {
 }
 
 // Check for required parameters
-if (!file(params.input_dir).exists()) {
-    log.error "Input directory '${params.input_dir}' does not exist or is not accessible!"
+if (!params.samplesheet) {
+    log.error "No samplesheet CSV file specified! Please provide a valid samplesheet file using --samplesheet"
+    exit 1
+}
+
+if (!file(params.samplesheet).exists()) {
+    log.error "Samplesheet file '${params.samplesheet}' does not exist or is not accessible!"
     exit 1
 }
 
@@ -106,7 +105,7 @@ log.info"""
 ===========================================
  RETrace2 Pipeline v1.0
 ===========================================
-Input directory    : ${params.input_dir}
+Samplesheet        : ${params.samplesheet}
 Output directory   : ${params.output_dir}
 Threads            : ${params.threads}
 Memory             : ${params.memory}
@@ -137,20 +136,69 @@ if (params.run_methylation) {
 //include { EVALUATION } from './modules/evaluation/evaluation.nf' 
 
 
-// Input channel for FASTQ files
-input_ch = Channel.fromPath("${params.input_dir}/${params.fastq_pattern}", checkIfExists: true)
-                   .map { file -> tuple(file.simpleName, file) }
-
-// Input channel for methylation FASTQ files (only if methylation is enabled)
-if (params.run_methylation) {
-    methylation_input_ch = Channel.fromPath("${params.methylation_input_dir}/${params.methylation_fastq_pattern}", checkIfExists: true)
-                                 .map { file -> tuple(file.simpleName, file) }
+// Process the samplesheet
+process CHECK_SAMPLESHEET {
+    publishDir "${params.output_dir}/pipeline_info", mode: 'copy'
+    
+    input:
+    path samplesheet
+    
+    output:
+    path "samplesheet.valid.csv", emit: csv
+    
+    script:
+    """
+    check_samplesheet.py \\
+        --samplesheet $samplesheet \\
+        --output samplesheet.valid.csv
+    """
+    
+    stub:
+    """
+    touch samplesheet.valid.csv
+    """
 }
 
 // Main workflow
 workflow {
+    // Validate samplesheet
+    CHECK_SAMPLESHEET(file(params.samplesheet))
+    
+    // Create input channels from the samplesheet
+    Channel.fromPath(CHECK_SAMPLESHEET.out.csv)
+        .splitCsv(header:true)
+        .map { row -> 
+            // Extract microsatellite FASTQ file
+            ms_fastq = file(row.ms_fastq_1)
+            if (!ms_fastq.exists()) {
+                exit 1, "ERROR: Microsatellite FASTQ file does not exist: ${row.ms_fastq_1}"
+            }
+            
+            // Create tuple with sample_id and FASTQ file
+            tuple(row.sample_id, ms_fastq)
+        }
+        .set { ms_input_ch }
+    
+    // Create channel for methylation inputs if run_methylation is enabled
+    if (params.run_methylation) {
+        Channel.fromPath(CHECK_SAMPLESHEET.out.csv)
+            .splitCsv(header:true)
+            .filter { row -> row.meth_fastq_1 && row.meth_fastq_1.trim() }
+            .map { row ->
+                // Extract methylation FASTQ file
+                meth_fastq = file(row.meth_fastq_1)
+                if (!meth_fastq.exists()) {
+                    exit 1, "ERROR: Methylation FASTQ file does not exist: ${row.meth_fastq_1}"
+                }
+                
+                // Create tuple with sample_id and FASTQ file
+                tuple(row.sample_id, meth_fastq)
+            }
+            .set { methylation_input_ch }
+    }
+    
     // Core pipeline
-    MAPPING(input_ch)
+    MAPPING(ms_input_ch)
     STATS(MAPPING.out.bam)
     //HIPSTR(MAPPING.out.bam)
     //PHYLO(HIPSTR.out.vcf)    

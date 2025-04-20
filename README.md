@@ -24,6 +24,10 @@ RETrace2 is a comprehensive pipeline for processing and analyzing sequencing dat
   - Tree bootstrapping
   - Tree accuracy evaluation (with ground truth)
   - Methylation analysis for cell type inference
+
+- Current support:
+  - Single-end reads (as shown in RETrace2 paper using R1 250bp)
+  - Paired-end read support planned for future releases
 <br>
 
 
@@ -92,21 +96,57 @@ cd retrace2
 ```
 
 ### Usage
-```bash
-# Run core pipeline
-nextflow run main.nf \
-          --input_dir data/MSH2 \
-          --fastq_pattern = "MS*.fastq.gz"
-          --output_dir results/ \
-          --genome_base /path/to/genome_base \
-          --genome mm39 \
-          --target_bed resources/targets/mm39/RETrace2.mm39.1nt10-30bp.92460targets169818probes.bed
+
+The typical command for running the pipeline is as follows:
+
+```
+nextflow run main.nf --samplesheet path/to/samplesheet.csv 
+                     --output_dir results
+                     --genome_base /path/to/genome_base \
+                     --genome mm39 \
+                     --target_bed resources/targets/mm39/RETrace2.mm39.1nt10-30bp.92460targets169818probes.bed
 ```
 
-```bash
-# To see all available option 
-nextflow run main.nf --help
+
+### Input Samplesheet
+
+The pipeline uses a CSV samplesheet with the following columns:
+
+| Column | Description |
+|--------|-------------|
+| sample_id | Unique sample identifier (required) |
+| ms_fastq_1 | Path to microsatellite FASTQ file (required) |
+| meth_fastq_1 | Path to methylation FASTQ file (optional) |
+| group | Group identifier for the sample (optional) |
+| color | Color for visualization (optional, hex format) |
+
+> **Note:** Currently, RETrace2 only supports single-end reads. The columns are named with "_1" suffix to allow for future paired-end support where "_2" columns will be added.
+
+Example samplesheet:
+
+```csv
+sample_id,ms_fastq_1,meth_fastq_1,group,color
+Sample1,data/fastq/Sample1_MS.fastq.gz,data/fastq/Sample1_Methyl.fastq.gz,GroupA,#FF0000
+Sample2,data/fastq/Sample2_MS.fastq.gz,data/fastq/Sample2_Methyl.fastq.gz,GroupA,#00FF00
+Sample3,data/fastq/Sample3_MS.fastq.gz,,GroupB,#0000FF
 ```
+
+An example samplesheet has been provided in `assets/samplesheet.csv`.
+
+### Parameters
+
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `--samplesheet` | None | Path to the samplesheet CSV file (required) |
+| `--output_dir` | results | Path to the output directory |
+| `--genome_base` | /path/to/reference/genome_base | Path to the reference genome base directory |
+| `--genome` | mm39 | Reference genome identifier |
+| `--threads` | 30 | Number of threads for parallel processing |
+| `--memory` | 100.GB | Memory allocation for processes |
+| `--run_methylation` | false | Whether to run methylation analysis |
+| `--run_bootstrap` | false | Whether to run bootstrap analysis |
+
+For a full list of parameters, run `nextflow run main.nf --help`.
 <br>
 
 
