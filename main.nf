@@ -136,59 +136,41 @@ if (params.run_methylation) {
 //include { EVALUATION } from './modules/evaluation/evaluation.nf' 
 
 
-// Process the samplesheet
-process CHECK_SAMPLESHEET {
-    publishDir "${params.output_dir}/pipeline_info", mode: 'copy'
-    
-    input:
-    path samplesheet
-    
-    output:
-    path "samplesheet.valid.csv", emit: csv
-    
-    script:
-    """
-    check_samplesheet.py \\
-        --samplesheet $samplesheet \\
-        --output samplesheet.valid.csv
-    """
-    
-    stub:
-    """
-    touch samplesheet.valid.csv
-    """
-}
-
 // Main workflow
 workflow {
-    // Validate samplesheet
-    CHECK_SAMPLESHEET(file(params.samplesheet))
-    
-    // Create input channels from the samplesheet
-    Channel.fromPath(CHECK_SAMPLESHEET.out.csv)
+    // Create input channels directly from the samplesheet
+    Channel.fromPath(params.samplesheet)
         .splitCsv(header:true)
         .map { row -> 
+            // Skip comment lines
+            if (row.sample_id.startsWith('#')) {
+                return null
+            }
+            
             // Extract microsatellite FASTQ file
             ms_fastq = file(row.ms_fastq_1)
             if (!ms_fastq.exists()) {
-                exit 1, "ERROR: Microsatellite FASTQ file does not exist: ${row.ms_fastq_1}"
+                log.error "ERROR: Microsatellite FASTQ file does not exist: ${row.ms_fastq_1}"
+                exit 1
             }
             
             // Create tuple with sample_id and FASTQ file
             tuple(row.sample_id, ms_fastq)
         }
+        .filter { it != null }
         .set { ms_input_ch }
     
     // Create channel for methylation inputs if run_methylation is enabled
     if (params.run_methylation) {
-        Channel.fromPath(CHECK_SAMPLESHEET.out.csv)
+        Channel.fromPath(params.samplesheet)
             .splitCsv(header:true)
-            .filter { row -> row.meth_fastq_1 && row.meth_fastq_1.trim() }
+            .filter { row -> !row.sample_id.startsWith('#') && row.meth_fastq_1 && row.meth_fastq_1.trim() }
             .map { row ->
                 // Extract methylation FASTQ file
                 meth_fastq = file(row.meth_fastq_1)
                 if (!meth_fastq.exists()) {
-                    exit 1, "ERROR: Methylation FASTQ file does not exist: ${row.meth_fastq_1}"
+                    log.error "ERROR: Methylation FASTQ file does not exist: ${row.meth_fastq_1}"
+                    exit 1
                 }
                 
                 // Create tuple with sample_id and FASTQ file
