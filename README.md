@@ -108,7 +108,7 @@ nextflow run main.nf --samplesheet path/to/samplesheet.csv
 ```
 
 
-### Input Samplesheet
+### Samplesheet
 
 The pipeline uses a CSV samplesheet with the following columns:
 
@@ -122,16 +122,7 @@ The pipeline uses a CSV samplesheet with the following columns:
 
 > **Note:** Currently, RETrace2 only supports single-end reads. The columns are named with "_1" suffix to allow for future paired-end support where "_2" columns will be added.
 
-Example samplesheet:
-
-```csv
-sample_id,ms_fastq_1,meth_fastq_1,group,color
-Sample1,data/fastq/Sample1_MS.fastq.gz,data/fastq/Sample1_Methyl.fastq.gz,GroupA,#FF0000
-Sample2,data/fastq/Sample2_MS.fastq.gz,data/fastq/Sample2_Methyl.fastq.gz,GroupA,#00FF00
-Sample3,data/fastq/Sample3_MS.fastq.gz,,GroupB,#0000FF
-```
-
-An example samplesheet has been provided in `assets/samplesheet.csv`.
+An example samplesheet has been provided in [assets/samplesheet_msh2.csv](assets/samplesheet_msh2.csv).
 
 ### Parameters
 
@@ -141,6 +132,7 @@ An example samplesheet has been provided in `assets/samplesheet.csv`.
 | `--output_dir` | results | Path to the output directory |
 | `--genome_base` | /path/to/reference/genome_base | Path to the reference genome base directory |
 | `--genome` | mm39 | Reference genome identifier |
+| `--target_bed` | /path/to/target_bed | List of available target bed can be found in [resources/targets](resources/targets) |
 | `--threads` | 30 | Number of threads for parallel processing |
 | `--memory` | 100.GB | Memory allocation for processes |
 | `--run_methylation` | false | Whether to run methylation analysis |
