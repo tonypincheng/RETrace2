@@ -141,39 +141,32 @@ workflow {
     // Create input channels directly from the samplesheet
     Channel.fromPath(params.samplesheet)
         .splitCsv(header:true)
+        .filter { row -> !row.sample_id.startsWith('#') && row.ms_fastq_1 }
         .map { row -> 
-            // Skip comment lines
-            if (row.sample_id.startsWith('#')) {
-                return null
-            }
-            
-            // Extract microsatellite FASTQ file
             ms_fastq = file(row.ms_fastq_1)
+            
             if (!ms_fastq.exists()) {
                 log.error "ERROR: Microsatellite FASTQ file does not exist: ${row.ms_fastq_1}"
                 exit 1
             }
-            
-            // Create tuple with sample_id and FASTQ file
+
             tuple(row.sample_id, ms_fastq)
         }
-        .filter { it != null }
         .set { ms_input_ch }
     
     // Create channel for methylation inputs if run_methylation is enabled
     if (params.run_methylation) {
         Channel.fromPath(params.samplesheet)
             .splitCsv(header:true)
-            .filter { row -> !row.sample_id.startsWith('#') && row.meth_fastq_1 && row.meth_fastq_1.trim() }
+            .filter { row -> !row.sample_id.startsWith('#') && row.meth_fastq_1 }
             .map { row ->
-                // Extract methylation FASTQ file
                 meth_fastq = file(row.meth_fastq_1)
+                
                 if (!meth_fastq.exists()) {
                     log.error "ERROR: Methylation FASTQ file does not exist: ${row.meth_fastq_1}"
                     exit 1
                 }
-                
-                // Create tuple with sample_id and FASTQ file
+
                 tuple(row.sample_id, meth_fastq)
             }
             .set { methylation_input_ch }

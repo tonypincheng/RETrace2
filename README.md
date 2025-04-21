@@ -104,7 +104,7 @@ nextflow run main.nf --samplesheet path/to/samplesheet.csv
                      --output_dir results
                      --genome_base /path/to/genome_base \
                      --genome mm39 \
-                     --target_bed resources/targets/mm39/RETrace2.mm39.1nt10-30bp.92460targets169818probes.bed
+                     --target_bed path/to/resources/targets/mm39/RETrace2.mm39.1nt10-30bp.92460targets169818probes.bed
 ```
 
 
