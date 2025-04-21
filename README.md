@@ -70,7 +70,7 @@ The repository includes small test datasets in the `data/` directory:
 - Designed for testing dual-omic pipeline capabilities
 - Sufficient data to test the pipeline's methylation analysis functionality
 
-For details about the test data, see the [data/README.md](data/README.md) file.
+For details about the test data, see [data/README.md](data/README.md).
 <br><br>
 
 
@@ -104,7 +104,7 @@ nextflow run main.nf --samplesheet path/to/samplesheet.csv
                      --output_dir results
                      --genome_base /path/to/genome_base \
                      --genome mm39 \
-                     --target_bed path/to/resources/targets/mm39/RETrace2.mm39.1nt10-30bp.92460targets169818probes.bed
+                     --target_bed path/to/target_bed
 ```
 
 
@@ -120,7 +120,7 @@ The pipeline uses a CSV samplesheet with the following columns:
 | group | Group identifier for the sample (optional) |
 | color | Color for visualization (optional, hex format) |
 
-> **Note:** Currently, RETrace2 only supports single-end reads. The columns are named with "_1" suffix to allow for future paired-end support where "_2" columns will be added.
+> **Note:** Currently, RETrace2 only supports single-end read. The columns are named with "_1" suffix to allow for future paired-end support where "_2" columns will be added.
 
 An example samplesheet has been provided in [assets/samplesheet_msh2.csv](assets/samplesheet_msh2.csv).
 
@@ -133,12 +133,13 @@ An example samplesheet has been provided in [assets/samplesheet_msh2.csv](assets
 | `--genome_base` | /path/to/reference/genome_base | Path to the reference genome base directory |
 | `--genome` | mm39 | Reference genome identifier |
 | `--target_bed` | /path/to/target_bed | List of available target bed can be found in [resources/targets](resources/targets) |
-| `--threads` | 30 | Number of threads for parallel processing |
-| `--memory` | 100.GB | Memory allocation for processes |
 | `--run_methylation` | false | Whether to run methylation analysis |
 | `--run_bootstrap` | false | Whether to run bootstrap analysis |
+| `--threads` | 30 | Number of threads for parallel processing |
+| `--memory` | 100.GB | Memory allocation for processes |
 
 For a full list of parameters, run `nextflow run main.nf --help`.
+<br>
 <br>
 
 
