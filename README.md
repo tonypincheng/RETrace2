@@ -24,6 +24,10 @@ RETrace2 is a comprehensive pipeline for processing and analyzing sequencing dat
   - Tree bootstrapping
   - Tree accuracy evaluation (with ground truth)
   - Methylation analysis for cell type inference
+
+- Current support:
+  - Single-end reads (as shown in RETrace2 paper using R1 250bp)
+  - Paired-end read support planned for future releases
 <br>
 
 
@@ -66,7 +70,7 @@ The repository includes small test datasets in the `data/` directory:
 - Designed for testing dual-omic pipeline capabilities
 - Sufficient data to test the pipeline's methylation analysis functionality
 
-For details about the test data, see the [data/README.md](data/README.md) file.
+For details about the test data, see [data/README.md](data/README.md).
 <br><br>
 
 
@@ -92,21 +96,50 @@ cd retrace2
 ```
 
 ### Usage
-```bash
-# Run core pipeline
-nextflow run main.nf \
-          --input_dir data/MSH2 \
-          --fastq_pattern = "MS*.fastq.gz"
-          --output_dir results/ \
-          --genome_base /path/to/genome_base \
-          --genome mm39 \
-          --target_bed resources/targets/mm39/RETrace2.mm39.1nt10-30bp.92460targets169818probes.bed
+
+The typical command for running the pipeline is as follows:
+
+```
+nextflow run main.nf --samplesheet path/to/samplesheet.csv 
+                     --output_dir results
+                     --genome_base /path/to/genome_base \
+                     --genome mm39 \
+                     --target_bed path/to/target_bed
 ```
 
-```bash
-# To see all available option 
-nextflow run main.nf --help
-```
+
+### Samplesheet
+
+The pipeline uses a CSV samplesheet with the following columns:
+
+| Column | Description |
+|--------|-------------|
+| sample_id | Unique sample identifier (required) |
+| ms_fastq_1 | Path to microsatellite FASTQ file (required) |
+| meth_fastq_1 | Path to methylation FASTQ file (optional) |
+| group | Group identifier for the sample (optional) |
+| color | Color for visualization (optional, hex format) |
+
+> **Note:** Currently, RETrace2 only supports single-end read. The columns are named with "_1" suffix to allow for future paired-end support where "_2" columns will be added.
+
+An example samplesheet has been provided in [assets/samplesheet_msh2.csv](assets/samplesheet_msh2.csv).
+
+### Parameters
+
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `--samplesheet` | None | Path to the samplesheet CSV file (required) |
+| `--output_dir` | results | Path to the output directory |
+| `--genome_base` | /path/to/reference/genome_base | Path to the reference genome base directory |
+| `--genome` | mm39 | Reference genome identifier |
+| `--target_bed` | /path/to/target_bed | List of available target bed can be found in [resources/targets](resources/targets) |
+| `--run_methylation` | false | Whether to run methylation analysis |
+| `--run_bootstrap` | false | Whether to run bootstrap analysis |
+| `--threads` | 30 | Number of threads for parallel processing |
+| `--memory` | 100.GB | Memory allocation for processes |
+
+For a full list of parameters, run `nextflow run main.nf --help`.
+<br>
 <br>
 
 

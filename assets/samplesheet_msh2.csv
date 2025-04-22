@@ -1,0 +1,12 @@
+sample_id,ms_fastq_1,meth_fastq_1,group,color
+Brain-PostCortex-NeuNpos-4F,./data/MSH2/MS_1nt169k_MSH2_SC_Brain_PostCortex-NeuNpos_20250319_Plate1-4F_R1_100000reads.fastq.gz,./data/MSH2/Methyl_MSH2_SC_Brain_PostCortex-NeuNpos_20250319_Plate1-4F_R1_100000reads.fastq.gz,Brain,#0000FF
+Brain-PostCortex-NeuNpos-5F,./data/MSH2/MS_1nt169k_MSH2_SC_Brain_PostCortex-NeuNpos_20250319_Plate1-5F_R1_100000reads.fastq.gz,./data/MSH2/Methyl_MSH2_SC_Brain_PostCortex-NeuNpos_20250319_Plate1-5F_R1_100000reads.fastq.gz,Brain,#0000FF
+Kidney-Cortex-1-7C,./data/MSH2/MS_1nt169k_MSH2_SC_Kidney_Right-Cortex-1_20250319_Plate1-7C_R1_100000reads.fastq.gz,./data/MSH2/Methyl_MSH2_SC_Kidney_Right-Cortex-1_20250319_Plate1-7C_R1_100000reads.fastq.gz,Kidney,#00FF00
+
+
+# Lines starting with # will be ignored
+# sample_id: Unique sample identifier
+# ms_fastq_1: Path to microsatellite FASTQ file (required)
+# meth_fastq_1: Path to methylation FASTQ file (optional)
+# group: Group identifier for the sample (optional)
+# color: Color for visualization (optional, hex format) 

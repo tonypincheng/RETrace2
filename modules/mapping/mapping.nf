@@ -12,7 +12,7 @@ process FASTQC {
     tuple val(sample_id), path(reads)
     
     output:
-    path("${sample_id}_fastqc.{zip,html}"), emit: fastqc_results
+    path("${reads.simpleName}_fastqc.{zip,html}"), emit: fastqc_results
     
     script:
     """
@@ -59,6 +59,7 @@ process TRIM_GALORE {
         --length 36 \
         --cores ${task.cpus} \
         --output_dir . \
+        --basename ${sample_id} \
         ${reads}
     """
 }
