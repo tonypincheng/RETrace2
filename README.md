@@ -86,6 +86,8 @@ For details about the test data, see [data/README.md](data/README.md).
 - bwa=0.7.19
 - pysam=0.22.1
 - samtools=1.21
+- matplotlib=3.9.4
+- seaborn=0.13.2
 
 > **Note:** You can also use Docker or Conda (see below) to handle dependencies automatically.
 

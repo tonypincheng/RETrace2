@@ -13,9 +13,7 @@ dependencies:
   - bwa=0.7.19
   - pysam=0.22.1
   - samtools=1.21
-  # - samtools
-  # - bedtools
-  # - pandas
-  # - numpy
-  # - matplotlib
-  # - seaborn
+  - matplotlib=3.9.4
+  - seaborn=0.13.2
+
+

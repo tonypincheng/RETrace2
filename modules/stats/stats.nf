@@ -25,7 +25,7 @@ process count_targets {
 process generate_combined_stats {
     publishDir "${params.output_dir}/stats", mode: 'copy'
     //container "quay.io/biocontainers/python:3.9"
-    conda "conda-forge::python=3.9 conda-forge::matplotlib=3.9.4 pandas seaborn"
+    //conda "conda-forge::python=3.9 conda-forge::matplotlib=3.9.4 seaborn=0.13.2"
     
     input:
     path(ms_counts)
@@ -34,7 +34,8 @@ process generate_combined_stats {
     output:
     path("sample_stats.tsv"), emit: sample_stats
     path("summary_stats.txt"), emit: summary_stats
-    
+    path("figures"), emit: figures
+
     script:
     // If no methylation data is provided, pass an empty list to the script
     def allc_files_param = allc_files ? "--allc-files ${allc_files}" : ""

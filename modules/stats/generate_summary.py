@@ -5,8 +5,8 @@ import os
 import pandas as pd
 import numpy as np
 import gzip
-#import matplotlib.pyplot as plt
-#import seaborn as sns
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 def parse_args():
     """Parse command line arguments"""
@@ -17,6 +17,7 @@ def parse_args():
     parser.add_argument('--min-targets-per-sample', type=int, default=10, help='Minimum targets per sample')
     parser.add_argument('--min-cpgs-per-sample', type=int, default=1000, help='Minimum CpGs per sample')
     parser.add_argument('--output-dir', required=True, help='Output directory for summary files')
+    parser.add_argument('--no-plots', action='store_true', help='Disable plot generation')
     return parser.parse_args()
 
 def load_ms_counts(ms_files, min_reads_per_target=10):
@@ -131,6 +132,53 @@ def merge_data(ms_data, cpg_data=None):
     
     return all_data
 
+def create_plots(df, output_dir):
+    """Create visualization plots for summary statistics"""
+    # Set the style
+    sns.set(style="whitegrid")
+    
+    # Create figures directory if it doesn't exist
+    figures_dir = os.path.join(output_dir, 'figures')
+    os.makedirs(figures_dir, exist_ok=True)
+    
+    # Sort dataframe by sample_id
+    df_sorted = df.sort_values('sample_id')
+    
+    # Plot 1: Bar plot of MS targets per sample
+    plt.figure(figsize=(max(10, len(df)*0.3), 8))
+    ax = sns.barplot(data=df_sorted, x='sample_id', y='ms_targets_with_min_reads', hue='pass')
+    plt.axhline(y=df_sorted.iloc[0]['min_targets_per_sample'], color='red', linestyle='--',
+               label=f'Min threshold: {df_sorted.iloc[0]["min_targets_per_sample"]}')
+    plt.title('Microsatellite Targets per Sample')
+    plt.xlabel('Sample ID')
+    plt.ylabel('Number of Microsatellite Targets')
+    plt.xticks(rotation=45)
+    plt.legend()
+    plt.tight_layout()
+    # Save in both formats
+    plt.savefig(os.path.join(figures_dir, 'ms_targets_barplot.png'), dpi=300)
+    plt.savefig(os.path.join(figures_dir, 'ms_targets_barplot.pdf'))
+    plt.close()
+    
+    # Check if CpG data is available
+    if 'cpg_count' in df.columns and df['cpg_count'].sum() > 0:
+        # Plot 2: Bar plot of CpG counts per sample (using the same sample_id sorted order)
+        plt.figure(figsize=(max(10, len(df)*0.3), 8))
+        ax = sns.barplot(data=df_sorted, x='sample_id', y='cpg_count', hue='pass')
+        plt.axhline(y=df_sorted.iloc[0]['min_cpgs_per_sample'], color='red', linestyle='--',
+                   label=f'Min threshold: {df_sorted.iloc[0]["min_cpgs_per_sample"]}')
+        plt.title('CpG Counts per Sample')
+        plt.xlabel('Sample ID')
+        plt.ylabel('Number of CpGs')
+        plt.xticks(rotation=45)
+        plt.legend()
+        plt.tight_layout()
+        # Save in both formats
+        plt.savefig(os.path.join(figures_dir, 'cpg_count_barplot.png'), dpi=300)
+        plt.savefig(os.path.join(figures_dir, 'cpg_count_barplot.pdf'))
+        plt.close()
+    
+    return figures_dir
 
 def main():
     args = parse_args()
@@ -173,6 +221,8 @@ def main():
         row['cpg_count'] = cpg_count
         row['methylation_rate'] = methylation_rate
         row['pass'] = passes
+        row['min_targets_per_sample'] = args.min_targets_per_sample
+        row['min_cpgs_per_sample'] = args.min_cpgs_per_sample
         
         rows.append(row)
     
@@ -255,14 +305,10 @@ def main():
                 f.write(f"Mean methylation rate: {summary['filtered_mean_methylation_rate']:.4f}\n")
                 f.write(f"Median methylation rate: {summary['filtered_median_methylation_rate']:.4f}\n")
     
-    # Generate plots if there are enough samples
-    # if len(df) > 0:
-    #     plot_file = os.path.join(args.output_dir, 'all_samples_plot.pdf')
-    #     generate_plots(df, plot_file)
-        
-    #     if len(filtered_df) > 0:
-    #         filtered_plot_file = os.path.join(args.output_dir, 'filtered_samples_plot.pdf')
-    #         generate_plots(filtered_df, filtered_plot_file)
+    # Generate plots if not disabled
+    if not args.no_plots:
+        figures_dir = create_plots(df, args.output_dir)
+        print(f"Plots generated in {figures_dir}")
     
     print(f"Summary generation completed successfully! {summary['passing_samples']}/{summary['total_samples']} samples passed filtering criteria.")
     print(f"Results written to {output_file} and {summary_file}")
