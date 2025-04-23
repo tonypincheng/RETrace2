@@ -15,9 +15,13 @@ params.genome = "mm39"
 params.ref_fasta = null
 params.bwa_index_path = null
 
+// Per sample parameters
+params.min_targets = 100
+params.min_cpgs = 1000
+
 // HipSTR parameters
 params.min_qual = 0.9
-params.min_reads = 10
+params.min_reads = 10 // also used for the minimum number of reads per target in the summary stats
 params.max_stutter = 1.0
 
 // Optional analysis parameters
@@ -110,6 +114,9 @@ Output directory   : ${params.output_dir}
 Threads            : ${params.threads}
 Memory             : ${params.memory}
 Reference genome   : ${params.genome}
+Per Sample parameters   :
+  - Min targets    : ${params.min_targets}
+  - Min CpGs       : ${params.min_cpgs}
 HipSTR parameters  :
   - Min quality    : ${params.min_qual}
   - Min reads      : ${params.min_reads}
@@ -174,7 +181,19 @@ workflow {
     
     // Core pipeline
     MAPPING(ms_input_ch)
-    STATS(MAPPING.out.bam)
+    
+    // Create an empty channel for optional methylation BAM files
+    methylation_allc_ch = Channel.empty()
+    
+    // Run methylation analysis if enabled
+    if (params.run_methylation) {
+        METHYLATION(methylation_input_ch)
+        methylation_allc_ch = METHYLATION.out.allc
+    }
+    
+    // Pass both microsatellite BAM files and methylation data to STATS
+    STATS(MAPPING.out.bam, methylation_allc_ch)
+    
     //HIPSTR(MAPPING.out.bam)
     //PHYLO(HIPSTR.out.vcf)    
     
@@ -193,17 +212,6 @@ workflow {
     //         log.warn "Evaluation requested but no ground truth provided. Skipping evaluation."
     //     }
     // }
-    
-    if (params.run_methylation) {
-        METHYLATION(methylation_input_ch)
-        // methylation_results_ch = METHYLATION.out.results
-        // methylation_stats_ch = METHYLATION.out.detailed_stats
-        // methylation_summary_ch = METHYLATION.out.summary_stats
-        // methylation_plot_ch = METHYLATION.out.summary_plot
-    }
-    
-    // Print workflow completion message
-    // tree_ch.view { "Phylogenetic tree completed: ${it}" }
 }
 
 
@@ -224,6 +232,8 @@ workflow.onComplete {
         - Microsatellite FASTQC: ${params.output_dir}/mapping/fastqc/
         - Microsatellite BAM files: ${params.output_dir}/mapping/bam/
         - Sample stats: ${params.output_dir}/stats/
+        - Microsatellite statistics: ${params.output_dir}/stats/ms_counts/
+        - Summary statistics: ${params.output_dir}/stats/
         """
         
         if (params.run_bootstrap) {
@@ -246,7 +256,7 @@ workflow.onComplete {
         Methylation results:
         - Methylation FASTQC: ${params.output_dir}/methylation/fastqc/
         - Methylation allc files: ${params.output_dir}/methylation/allc/
-
+        - Combined statistics: ${params.output_dir}/stats/ (includes both MS and CpG data)
             """
         }
         

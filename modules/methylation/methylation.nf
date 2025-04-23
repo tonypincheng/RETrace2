@@ -77,7 +77,8 @@ process methylpy {
     
     output:
     path("log/${sample_id}_methylpy.log"), emit: log_file
-    path("allc/*"), emit: allc
+    tuple val(sample_id), path("allc/*bam"), path("allc/*bam.bai"), emit: methylpy_bam
+    tuple val(sample_id), path("allc/allc*tsv.gz"), emit: allc
     
     script:
     def ref_prefix = params.methylpy_ref ?: "${params.genome_base}/${params.genome}/methylpl-ref/${params.genome}"
@@ -147,10 +148,6 @@ workflow METHYLATION {
     // // Analyze methylpy output and stats
     // stats = analyze_methylpy_stats(methylpy_results.log_file.collect(), methylpy_results.results)
     
-    // emit:
-    // log_file = methylpy_results.log_file
-    // results = methylpy_results.results
-    // detailed_stats = stats.detailed_stats
-    // summary_stats = stats.summary_stats
-    // summary_plot = stats.summary_plot
+    emit:
+    allc = methylpy.out.allc
 }

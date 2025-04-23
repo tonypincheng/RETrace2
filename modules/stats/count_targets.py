@@ -12,10 +12,9 @@ class MicrosatelliteCounter:
     Process BAM files to count unique microsatellite targets.
     """
     
-    def __init__(self, target_bed=None, min_depth=30):
-        """Initialize counter with target regions and minimum read depth."""
+    def __init__(self, target_bed=None):
+        """Initialize counter with target regions."""
         self.target_bed = target_bed
-        self.min_depth = min_depth
         self.targets = self._load_targets() if target_bed else None
     
     def _load_targets(self):
@@ -32,7 +31,7 @@ class MicrosatelliteCounter:
     
     def count_targets(self, bam_file):
         """
-        Count targets in a BAM file with coverage >= min_depth.
+        Count targets in a BAM file.
         Currently only support single-end reads counting.
         """
         depth_dict = defaultdict(int)
@@ -52,11 +51,10 @@ class MicrosatelliteCounter:
         """Write statistics to output file."""
         
         with open(output_file, 'w') as f_out:
-            f_out.write(f"target_id\tdepth\tcovered_{self.min_depth}X\n")
+            f_out.write(f"target_id\tdepth\n")
             
             for target_id, depth in sorted(targets_dict.items()):
-                covered = "True" if depth >= self.min_depth else "False"
-                f_out.write(f"{target_id}\t{depth}\t{covered}\n")
+                f_out.write(f"{target_id}\t{depth}\n")
         
 
 
@@ -64,7 +62,6 @@ def main():
     parser = argparse.ArgumentParser(description="Count unique microsatellite targets in a BAM file")
     parser.add_argument("--bam", required=True, help="Input BAM file (must be indexed)")
     parser.add_argument("--target_bed", required=True, help="BED file containing target microsatellite locations")
-    parser.add_argument("--min_depth", type=int, default=30, help="Minimum read depth for a target to be counted")
     parser.add_argument("--output", required=True, help="Output filename for results")
     
     args = parser.parse_args()
@@ -78,7 +75,7 @@ def main():
         print(f"BAM index not found for {args.bam}. Creating index...")
         pysam.index(args.bam)
     
-    counter = MicrosatelliteCounter(args.target_bed, args.min_depth)
+    counter = MicrosatelliteCounter(args.target_bed)
     
     # Process BAM file
     print(f"Processing BAM file: {args.bam}")
