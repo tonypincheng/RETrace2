@@ -80,7 +80,7 @@ process BWA_MEM {
     // Use direct reference path if provided, otherwise build from genome_base structure
     def reference = params.bwa_index_path ?: "${params.genome_base}/${params.genome}/bwa-index/${params.genome}.fa"
     """
-    bwa mem -t ${task.cpus} ${reference} ${trimmed_reads} | \
+    bwa mem -t ${task.cpus} ${reference} ${trimmed_reads} -R '@RG\\tID:${sample_id}\\tLB:${sample_id}\\tSM:${sample_id}' | \
     samtools sort -@${task.cpus} -o ${sample_id}.sorted.bam
     
     samtools index ${sample_id}.sorted.bam
