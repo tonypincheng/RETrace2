@@ -79,7 +79,7 @@ Threads            : ${params.threads}
 Memory             : ${params.memory}
 Reference genome   : ${params.genome}
 Sequencing mode    : ${params.paired_end ? 'Paired-end' : 'Single-end'}
-Per Sample parameters   :
+Per Sample parameters:
   - Min targets    : ${params.min_targets}
   - Min CpGs       : ${params.min_cpgs}
 HipSTR parameters  :
@@ -197,7 +197,6 @@ workflow.onComplete {
         Core results:
         - Microsatellite FASTQC: ${params.output_dir}/mapping/fastqc/
         - Microsatellite BAM files: ${params.output_dir}/mapping/bam/
-        - Sample stats: ${params.output_dir}/stats/
         - Microsatellite statistics: ${params.output_dir}/stats/ms_counts/
         - Summary statistics: ${params.output_dir}/stats/
         - HipSTR genotyping: ${params.output_dir}/hipstr/
