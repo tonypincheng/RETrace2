@@ -188,7 +188,7 @@ nextflow run main.nf -profile conda
 
 This will automatically create and manage Conda environments based on the requirements in `environment.yml`.
 <br>
-
+<br>
 
 ## Reference Genome Configuration
 
