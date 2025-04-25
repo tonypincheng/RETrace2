@@ -2,43 +2,6 @@
 
 nextflow.enable.dsl=2
 
-// Pipeline parameters
-params.samplesheet = null
-params.output_dir = "results"
-params.target_bed = "${baseDir}/resources/targets/mm39/RETrace2.mm39.1nt10-30bp.92460targets169818probes.bed"
-params.threads = 30
-params.memory = '100.GB'
-
-// Reference genome parameters
-params.genome_base = "/path/to/reference/genome_base"
-params.genome = "mm39"
-params.ref_fasta = null
-params.bwa_index_path = null
-
-// Per sample parameters
-params.min_targets = 100
-params.min_cpgs = 1000
-
-// HipSTR parameters
-params.min_qual = 0.9
-params.min_reads = 10 // also used for the minimum number of reads per target in the summary stats
-params.max_stutter = 1.0
-
-// Optional analysis parameters
-params.run_bootstrap = false
-params.bootstrap_iterations = 100
-params.run_evaluation = false
-params.ground_truth = null
-params.run_methylation = false
-
-// Methylation parameters
-params.methylpy_ref = null
-
-// System parameters
-params.help = false
-
-
-
 // Help message
 def helpMessage() {
 
@@ -60,6 +23,7 @@ def helpMessage() {
       --output_dir      Directory for output files (default: ${params.output_dir})
       --threads         Number of CPU threads to use (default: ${params.threads})
       --memory          Memory to allocate for processes (default: ${params.memory})
+      --paired_end      Specify if data is paired-end sequencing (default: ${params.paired_end})
 
       --bwa_index_path  Path to BWA index [optional]. If not specified, will use ${params.genome_base}/${params.genome}/bwa-index/${params.genome}.fa
       --ref_fasta Path to reference FASTA [optional]. If not specified, will use ${params.genome_base}/${params.genome}/raw_fasta/${params.genome}.fa
@@ -114,6 +78,7 @@ Output directory   : ${params.output_dir}
 Threads            : ${params.threads}
 Memory             : ${params.memory}
 Reference genome   : ${params.genome}
+Sequencing mode    : ${params.paired_end ? 'Paired-end' : 'Single-end'}
 Per Sample parameters   :
   - Min targets    : ${params.min_targets}
   - Min CpGs       : ${params.min_cpgs}
@@ -132,7 +97,7 @@ Optional analyses  :
 // Include modules
 include { MAPPING } from './modules/mapping/mapping.nf'
 include { STATS } from './modules/stats/stats.nf'
-//include { HIPSTR } from './modules/hipstr/hipstr.nf'
+include { HIPSTR } from './modules/hipstr/hipstr.nf'
 //include { PHYLO } from './modules/phylo/phylo.nf'
 
 // Conditionally include METHYLATION module
@@ -194,7 +159,8 @@ workflow {
     // Pass both microsatellite BAM files and methylation data to STATS
     STATS(MAPPING.out.bam, methylation_allc_ch)
     
-    //HIPSTR(MAPPING.out.bam)
+    // Run HipSTR for microsatellite genotyping
+    HIPSTR(MAPPING.out.bam, STATS.out.sample_stats)
     //PHYLO(HIPSTR.out.vcf)    
     
     // // Optional analyses
@@ -234,6 +200,7 @@ workflow.onComplete {
         - Sample stats: ${params.output_dir}/stats/
         - Microsatellite statistics: ${params.output_dir}/stats/ms_counts/
         - Summary statistics: ${params.output_dir}/stats/
+        - HipSTR genotyping: ${params.output_dir}/hipstr/
         """
         
         if (params.run_bootstrap) {
