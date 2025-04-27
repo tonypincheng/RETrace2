@@ -88,6 +88,7 @@ For details about the test data, see [data/README.md](data/README.md).
 - samtools=1.21
 - matplotlib=3.9.4
 - seaborn=0.13.2
+- HipSTR=0.6.2 (instructions below)
 
 > **Note:** You can also use Docker or Conda (see below) to handle dependencies automatically.
 
@@ -166,7 +167,21 @@ conda env create -f environment.yml
 conda activate retrace2
 ```
 
-Or install packages individually according to the versions specified in environment.yml.
+HipSTR is not available in conda repositories and must be installed from source:
+
+```bash
+# Clone the HipSTR repository
+git clone https://github.com/HipSTR-Tool/HipSTR
+cd HipSTR
+
+# Build HipSTR using Make
+make
+
+```
+Add the HipSTR executable to your PATH or specify full path when running. 
+
+For more information, visit [HipSTR](https://github.com/HipSTR-Tool/HipSTR).
+
 
 ### Docker 
 > ⚠️ **Under Active Development** ⚠️

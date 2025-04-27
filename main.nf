@@ -147,7 +147,7 @@ workflow {
     // Core pipeline
     MAPPING(ms_input_ch)
     
-    // Create an empty channel for optional methylation BAM files
+    // Create an empty channel for optional methylation files
     methylation_allc_ch = Channel.empty()
     
     // Run methylation analysis if enabled
@@ -156,11 +156,12 @@ workflow {
         methylation_allc_ch = METHYLATION.out.allc
     }
     
-    // Pass both microsatellite BAM files and methylation data to STATS
+    // Pass both microsatellite BAM and methylation files to STATS
     STATS(MAPPING.out.bam, methylation_allc_ch)
     
     // Run HipSTR for microsatellite genotyping
-    //HIPSTR(MAPPING.out.bam, STATS.out.sample_stats)
+    HIPSTR(MAPPING.out.bam, STATS.out.sample_stats)
+    
     //PHYLO(HIPSTR.out.vcf)    
     
     // // Optional analyses

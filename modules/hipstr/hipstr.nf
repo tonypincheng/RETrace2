@@ -2,10 +2,10 @@
 
 nextflow.enable.dsl=2
 
-process HIPSTR_CALLING {
+process hipstr_calling {
     publishDir "${params.output_dir}/hipstr", mode: 'copy'
-    container "community.wave.seqera.io/library/hipstr:latest"
-    conda "bioconda::hipstr bioconda::bcftools=1.21 bioconda::samtools=1.21 bioconda::tabix=1.21 conda-forge::pandas=2.2.1"
+    //container "community.wave.seqera.io/library/hipstr:latest"
+    //conda "bioconda::hipstr bioconda::bcftools=1.21 bioconda::samtools=1.21 bioconda::tabix=1.21 conda-forge::pandas=2.2.1"
     
     input:
     tuple val(sample_id), path(bam_files), path(bam_indices)
@@ -13,7 +13,7 @@ process HIPSTR_CALLING {
     
     output:
     path("${params.output_prefix}.vcf"), emit: vcf
-    path("${params.output_prefix}.log"), emit: log
+    path("${params.output_prefix}.log"), emit: hipstr_log
     
     script:
     // Construct bam files list with proper formatting
@@ -98,9 +98,9 @@ workflow HIPSTR {
     
     main:
     // Run HipSTR calling process
-    HIPSTR_CALLING(bam, sample_stats)
+    hipstr_calling(bam, sample_stats)
     
     emit:
-    vcf = HIPSTR_CALLING.out.vcf
-    log = HIPSTR_CALLING.out.log
+    vcf = hipstr_calling.out.vcf
+    hipstr_log = hipstr_calling.out.log
 } 
