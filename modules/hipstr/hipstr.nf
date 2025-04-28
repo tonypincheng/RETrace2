@@ -2,6 +2,31 @@
 
 nextflow.enable.dsl=2
 
+process filter_bams_by_stats {
+    input:
+    tuple val(sample_id), path(bam_file), path(bam_index)
+    path(sample_stats)
+    
+    output:
+    tuple val(sample_id), path("*.pass.bam"), path("*.pass.bam.bai"), emit: passing_bams, optional: true
+    
+    script:
+    """
+    # Parse sample stats to check if this sample passes
+    pass_status=\$(awk -F'\\t' -v sample="${sample_id}" '\$1 == sample {print \$4}' ${sample_stats})
+    
+    if [ "\$pass_status" = "True" ]; then
+        # Create symlinks with .pass suffix for passing sample
+        ln -s ${bam_file} \$(basename ${bam_file} .bam).pass.bam
+        ln -s ${bam_index} \$(basename ${bam_index} .bam.bai).pass.bam.bai
+    else
+        # Exit with code 0 but produce no output for failing samples
+        echo "Sample ${sample_id} did not pass QC (status: \$pass_status). Skipping."
+        exit 0
+    fi
+    """
+}
+
 process hipstr_per_chrom {
     tag "$chrom"
     
@@ -128,9 +153,15 @@ workflow HIPSTR {
     sample_stats
     
     main:
-    // Extract BAM files and BAI files
-    all_bams = bam.map { sample_id, bam_files, bam_indices -> bam_files }.flatten().collect()
-    all_bais = bam.map { sample_id, bam_files, bam_indices -> bam_indices }.flatten().collect()
+    // Filter BAM files based on sample stats
+    filter_bams_by_stats(bam, sample_stats)
+    
+    // Extract BAM files and BAI files from passing samples
+    filtered_bam_channel = filter_bams_by_stats.out.passing_bams
+    
+    // Get all filtered BAM and BAI files
+    all_bams = filtered_bam_channel.map { sample_id, bam_files, bam_indices -> bam_files }.flatten().collect()
+    all_bais = filtered_bam_channel.map { sample_id, bam_files, bam_indices -> bam_indices }.flatten().collect()
     
     if (params.by_chrom) {
         // Extract unique chromosomes from BED file
