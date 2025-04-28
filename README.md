@@ -88,6 +88,7 @@ For details about the test data, see [data/README.md](data/README.md).
 - samtools=1.21
 - matplotlib=3.9.4
 - seaborn=0.13.2
+- bcftools=1.21
 - HipSTR=0.6.2 (instructions below)
 
 > **Note:** You can also use Docker or Conda (see below) to handle dependencies automatically.
@@ -135,7 +136,7 @@ An example samplesheet has been provided in [assets/samplesheet_msh2.csv](assets
 | `--output_dir` | results | Path to the output directory |
 | `--genome_base` | /path/to/reference/genome_base | Path to the reference genome base directory |
 | `--genome` | mm39 | Reference genome identifier |
-| `--target_bed` | /path/to/target_bed | List of available target bed can be found in [resources/targets](resources/targets) |
+| `--target_bed` | /path/to/target_bed | BED file with target microsatellite regions in HipSTR format. For target enrichment experiments, provide the probe target BED file. List of available target BEDs can be found in [resources/targets](resources/targets). For whole genome sequencing, pre-built references can be downloaded from [HipSTR-references](https://github.com/HipSTR-Tool/HipSTR-references/tree/master).  |
 | `--run_methylation` | false | Whether to run methylation analysis |
 | `--run_bootstrap` | false | Whether to run bootstrap analysis |
 | `--threads` | 30 | Number of threads for parallel processing |
