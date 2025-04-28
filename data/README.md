@@ -34,7 +34,7 @@ Files are named according to the following convention:
 
 #### Included Files:
 - **Microsatellite Library**:
-  - MS_MSH2_[sample-info]_100000reads.fastq.gz
+  - MS_MSH2_[sample-info]_400000reads.fastq.gz
   - [Additional MS files...]
 
 - **Methylation Library**:
@@ -77,7 +77,7 @@ nextflow run main.nf --input_dir data/ --output_dir results/ --methylation true
 
 ## Data Size
 
-Each file is approximately 10MB in size, with the total test dataset being around 60MB. This is intentionally kept small to:
+Each HCT116 file is approximately 10MB in size, each MSH2 microsatellite file is approximately 80MB, and each MSH2 methylation file is approximately 10MB. The total test dataset is around 330MB. This is intentionally kept manageable to:
 1. Allow easy repository cloning
 2. Enable quick pipeline testing
 3. Demonstrate basic functionality without requiring extensive compute resources

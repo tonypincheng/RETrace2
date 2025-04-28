@@ -65,7 +65,7 @@ The repository includes small test datasets in the `data/` directory:
 - Sufficient data to test the pipeline's basic functionality and ground truth validation
 
 ### MSH2 Mouse Data
-- 6 FASTQ files with ~100,000 reads each
+- 6 FASTQ files with ~400,000 reads each for microsatellite libraries and ~100,000 reads each for methylation libraries
 - Includes both microsatellite and methylation libraries
 - Designed for testing dual-omic pipeline capabilities
 - Sufficient data to test the pipeline's methylation analysis functionality
