@@ -246,7 +246,7 @@ nextflow run main.nf --bwa_index_path /path/to/specific/reference.fa
 # For methylation analysis
 nextflow run main.nf --run_methylation \
                     --methylpy_ref /path/to/methylation/reference_prefix \
-                    --methylpy_ref_fasta /path/to/reference.fa
+                    --ref_fasta /path/to/reference.fa
 ```
 
 This option overrides the standard directory structure and is useful for:
