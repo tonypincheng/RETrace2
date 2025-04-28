@@ -7,8 +7,10 @@ process hipstr_calling {
     //container "community.wave.seqera.io/library/hipstr:latest"
     //conda "bioconda::hipstr bioconda::bcftools=1.21 bioconda::samtools=1.21 bioconda::tabix=1.21 conda-forge::pandas=2.2.1"
     
+
     input:
-    tuple val(sample_id), path(bam_files), path(bam_indices)
+    path(bam_files)
+    path(bam_indices)
     path(sample_stats)
     
     output:
@@ -16,8 +18,8 @@ process hipstr_calling {
     path("${params.output_prefix}.log"), emit: hipstr_log
     
     script:
-    // Construct bam files list with proper formatting
-    def bam_list = bam_files.collect().join(',')
+    // Create comma-separated list for HipSTR
+    def bam_list = bam_files.join(',')
     
     // Add SNP VCF option if provided
     def snp_option = params.snp_vcf ? "--snp-vcf ${params.snp_vcf}" : ""
@@ -28,6 +30,9 @@ process hipstr_calling {
     
     // Determine fasta path
     def fasta_path = params.ref_fasta ?: "${params.genome_base}/${params.genome}/raw_fasta/${params.genome}.fa"
+    
+    // Get HipSTR path from params or use command directly if not specified
+    def hipstr_path = params.hipstr_path ?: "HipSTR"
     
     // Choose between running by chromosome or standard mode
     if (params.by_chrom) {
@@ -44,16 +49,16 @@ process hipstr_calling {
           echo "Processing chromosome: \$chrom"
           
           # Run HipSTR for this chromosome
-          HipSTR \\
+          ${hipstr_path} \\
             --bams ${bam_list} \\
             --fasta ${fasta_path} \\
             --regions ${params.target_bed} \\
             --str-vcf chrom_vcfs/${params.output_prefix}.\$chrom.vcf.gz \\
             --log chrom_vcfs/${params.output_prefix}.\$chrom.log \\
-            ${snp_option} \\
             ${use_unpaired} \\
             --no-rmdup \\
-            --chrom \$chrom
+            --chrom \$chrom \\
+            ${snp_option}
             
           # Index for merging
           tabix -p vcf chrom_vcfs/${params.output_prefix}.\$chrom.vcf.gz
@@ -75,15 +80,15 @@ process hipstr_calling {
     } else {
         """
         # Run HipSTR in standard mode
-        HipSTR \\
+        ${hipstr_path} \\
             --bams ${bam_list} \\
             --fasta ${fasta_path} \\
             --regions ${params.target_bed} \\
             --str-vcf ${params.output_prefix}.vcf.gz \\
             --log ${params.output_prefix}.log \\
-            ${snp_option} \\
             ${use_unpaired} \\
-            --no-rmdup
+            --no-rmdup \\
+            ${snp_option}
         
         # Unzip the VCF
         gunzip ${params.output_prefix}.vcf.gz
@@ -97,8 +102,12 @@ workflow HIPSTR {
     sample_stats
     
     main:
-    // Run HipSTR calling process
-    hipstr_calling(bam, sample_stats)
+    // Extract BAM files and BAI files
+    all_bams = bam.map { sample_id, bam_files, bam_indices -> bam_files }.flatten().collect()
+    all_bais = bam.map { sample_id, bam_files, bam_indices -> bam_indices }.flatten().collect()
+    
+    // Run HipSTR calling process with all BAMs and their indices
+    hipstr_calling(all_bams, all_bais, sample_stats)
     
     emit:
     vcf = hipstr_calling.out.vcf

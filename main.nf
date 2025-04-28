@@ -26,8 +26,9 @@ def helpMessage() {
       --paired_end      Specify if data is paired-end sequencing (default: ${params.paired_end})
 
       --bwa_index_path  Path to BWA index [optional]. If not specified, will use ${params.genome_base}/${params.genome}/bwa-index/${params.genome}.fa
-      --ref_fasta Path to reference FASTA [optional]. If not specified, will use ${params.genome_base}/${params.genome}/raw_fasta/${params.genome}.fa
+      --ref_fasta       Path to reference FASTA [optional]. If not specified, will use ${params.genome_base}/${params.genome}/raw_fasta/${params.genome}.fa
       
+      --hipstr_path     Path to HipSTR executable [optional]. If not specified, will use "HipSTR" from PATH
       --min_qual        Minimum quality score for HipSTR (default: ${params.min_qual})
       --min_reads       Minimum number of reads for HipSTR (default: ${params.min_reads})
       --max_stutter     Maximum stutter ratio for HipSTR (default: ${params.max_stutter})
@@ -83,6 +84,7 @@ Per Sample parameters:
   - Min targets    : ${params.min_targets}
   - Min CpGs       : ${params.min_cpgs}
 HipSTR parameters  :
+  - Path           : ${params.hipstr_path ?: "HipSTR (from PATH)"}
   - Min quality    : ${params.min_qual}
   - Min reads      : ${params.min_reads}
   - Max stutter    : ${params.max_stutter}
