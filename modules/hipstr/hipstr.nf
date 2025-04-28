@@ -64,7 +64,13 @@ process merge_vcfs {
     script:
     """
     # Merge VCFs
-    bcftools concat -a -o ${params.output_prefix}.vcf ${vcfs}
+    bcftools concat -a -o ${params.output_prefix}.unsorted.vcf ${vcfs}
+    
+    # Sort the merged VCF
+    bcftools sort -o ${params.output_prefix}.vcf ${params.output_prefix}.unsorted.vcf
+    
+    # Remove the unsorted intermediate file
+    rm ${params.output_prefix}.unsorted.vcf
     
     # Combine logs
     cat ${logs} > ${params.output_prefix}.log
