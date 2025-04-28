@@ -265,6 +265,7 @@ def main():
     # Write main output TSV
     output_file = os.path.join(args.output_dir, 'sample_stats.tsv')
     output_df = df[['sample_id', 'ms_targets_with_min_reads', 'cpg_count', 'pass']]
+    output_df = output_df.sort_values('sample_id')
     output_df.to_csv(output_file, sep='\t', index=False)
     
     # Write summary file
