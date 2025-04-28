@@ -21,18 +21,27 @@ def helpMessage() {
     
     Optional arguments:
       --output_dir      Directory for output files (default: ${params.output_dir})
+      --output_prefix   Prefix for output files (default: ${params.output_prefix})
       --threads         Number of CPU threads to use (default: ${params.threads})
       --memory          Memory to allocate for processes (default: ${params.memory})
       --paired_end      Specify if data is paired-end sequencing (default: ${params.paired_end})
 
       --bwa_index_path  Path to BWA index [optional]. If not specified, will use ${params.genome_base}/${params.genome}/bwa-index/${params.genome}.fa
       --ref_fasta       Path to reference FASTA [optional]. If not specified, will use ${params.genome_base}/${params.genome}/raw_fasta/${params.genome}.fa
-      
+
+    Sample Quality parameters:
+      --min_targets     Minimum number of microsatellite targets per sample (default: ${params.min_targets})
+      --min_cpgs        Minimum number of CpGs per sample for methylation analysis (default: ${params.min_cpgs})
+
+    HipSTR parameters:
       --hipstr_path     Path to HipSTR executable [optional]. If not specified, will use "HipSTR" from PATH
       --min_qual        Minimum quality score for HipSTR (default: ${params.min_qual})
       --min_reads       Minimum number of reads for HipSTR (default: ${params.min_reads})
       --max_stutter     Maximum stutter ratio for HipSTR (default: ${params.max_stutter})
+      --by_chrom        Run HipSTR by chromosome in parallel (default: ${params.by_chrom})
+      --snp_vcf         Optional SNP VCF file for HipSTR (default: ${params.snp_vcf ?: "Not used"})
       
+    Optional analyses:
       --run_bootstrap   Run bootstrap analysis (default: ${params.run_bootstrap})
       --bootstrap_iterations Number of bootstrap iterations (default: ${params.bootstrap_iterations})
       

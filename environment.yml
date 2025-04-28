@@ -15,5 +15,6 @@ dependencies:
   - samtools=1.21
   - matplotlib=3.9.4
   - seaborn=0.13.2
+  - bcftools=1.21
 
 
