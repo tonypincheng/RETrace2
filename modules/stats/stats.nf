@@ -2,7 +2,7 @@
 
 nextflow.enable.dsl=2
 
-process count_targets {
+process COUNT_TARGETS {
     publishDir "${params.output_dir}/stats/ms_counts", mode: 'copy'
     container "quay.io/biocontainers/pysam:0.22.1--py39hdd5828d_3"
     conda "bioconda::pysam=0.22.1"
@@ -22,7 +22,7 @@ process count_targets {
     """
 }
 
-process generate_combined_stats {
+process COMBINE_STATS {
     publishDir "${params.output_dir}/stats", mode: 'copy'
     //container "quay.io/biocontainers/python:3.9"
     //conda "conda-forge::python=3.9 conda-forge::matplotlib=3.9.4 seaborn=0.13.2"
@@ -57,7 +57,7 @@ workflow STATS {
     
     main:
     // Count microsatellites targets
-    count_targets(bam)
+    COUNT_TARGETS(bam)
     
     // Prepare allc channel for stats generation
     allc_files_ch = Channel.empty()
@@ -67,8 +67,8 @@ workflow STATS {
     
     // Generate statistics incorporating both MS counts and methylation data if available
     // Use ifEmpty([]) to ensure the process runs even when allc_files_ch is empty
-    generate_combined_stats(count_targets.out.ms_counts.collect(), allc_files_ch.ifEmpty([]))
+    COMBINE_STATS(COUNT_TARGETS.out.ms_counts.collect(), allc_files_ch.ifEmpty([]))
 
     emit:
-    sample_stats = generate_combined_stats.out.sample_stats
+    sample_stats = COMBINE_STATS.out.sample_stats
 }

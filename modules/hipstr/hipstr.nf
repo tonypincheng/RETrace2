@@ -2,7 +2,7 @@
 
 nextflow.enable.dsl=2
 
-process filter_bams_by_stats {
+process FILTER_BAMS_BY_STATS {
     input:
     tuple val(sample_id), path(bam_file), path(bam_index)
     path(sample_stats)
@@ -27,7 +27,7 @@ process filter_bams_by_stats {
     """
 }
 
-process hipstr_per_chrom {
+process HIPSTR_PER_CHROM {
     tag "$chrom"
     
     input:
@@ -74,7 +74,7 @@ process hipstr_per_chrom {
     """
 }
 
-process merge_vcfs {
+process MERGE_VCFS {
     publishDir "${params.output_dir}/hipstr", mode: 'copy'
     
     input:
@@ -102,7 +102,7 @@ process merge_vcfs {
     """
 }
 
-process hipstr_calling {
+process HIPSTR_CALLING {
     publishDir "${params.output_dir}/hipstr", mode: 'copy'
     
     input:
@@ -147,7 +147,7 @@ process hipstr_calling {
     """
 }
 
-process parse_vcf {
+process PARSE_VCF {
     publishDir "${params.output_dir}/hipstr", mode: 'copy'
     
     input:
@@ -177,10 +177,10 @@ workflow HIPSTR {
     
     main:
     // Filter BAM files based on sample stats
-    filter_bams_by_stats(bam, sample_stats)
+    FILTER_BAMS_BY_STATS(bam, sample_stats)
     
     // Extract BAM files and BAI files from passing samples
-    filtered_bam_channel = filter_bams_by_stats.out.passing_bams
+    filtered_bam_channel = FILTER_BAMS_BY_STATS.out.passing_bams
     
     // Get all filtered BAM and BAI files
     all_bams = filtered_bam_channel.map { sample_id, bam_files, bam_indices -> bam_files }.flatten().collect()
@@ -194,31 +194,31 @@ workflow HIPSTR {
             .unique()
         
         // Run HipSTR per chromosome in parallel
-        hipstr_per_chrom(chroms_ch, all_bams, all_bais)
+        HIPSTR_PER_CHROM(chroms_ch, all_bams, all_bais)
         
         // Merge results
-        merge_vcfs(
-            hipstr_per_chrom.out.vcf.collect(),
-            hipstr_per_chrom.out.vcf_index.collect(),
-            hipstr_per_chrom.out.log.collect()
+        MERGE_VCFS(
+            HIPSTR_PER_CHROM.out.vcf.collect(),
+            HIPSTR_PER_CHROM.out.vcf_index.collect(),
+            HIPSTR_PER_CHROM.out.log.collect()
         )
         
-        vcf_output = merge_vcfs.out.vcf
-        log_output = merge_vcfs.out.hipstr_log
+        vcf_output = MERGE_VCFS.out.vcf
+        log_output = MERGE_VCFS.out.hipstr_log
     } else {
         // Run standard HipSTR
-        hipstr_calling(all_bams, all_bais, sample_stats)
+        HIPSTR_CALLING(all_bams, all_bais, sample_stats)
         
-        vcf_output = hipstr_calling.out.vcf
-        log_output = hipstr_calling.out.hipstr_log
+        vcf_output = HIPSTR_CALLING.out.vcf
+        log_output = HIPSTR_CALLING.out.hipstr_log
     }
     
     // Parse VCF to extract alleles
-    parse_vcf(vcf_output)
+    PARSE_VCF(vcf_output)
     
     emit:
     vcf = vcf_output
     hipstr_log = log_output
-    alleleDict = parse_vcf.out.alleleDict
-    sample_list = parse_vcf.out.sample_list
+    alleleDict = PARSE_VCF.out.alleleDict
+    sample_list = PARSE_VCF.out.sample_list
 } 

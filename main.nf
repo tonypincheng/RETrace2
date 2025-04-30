@@ -41,6 +41,10 @@ def helpMessage() {
       --by_chrom        Run HipSTR by chromosome in parallel (default: ${params.by_chrom})
       --snp_vcf         Optional SNP VCF file for HipSTR (default: ${params.snp_vcf ?: "Not used"})
       
+    Phylogenetic parameters:
+      --dist_metric     Distance metric for phylogenetic tree construction (default: ${params.dist_metric})
+      --outgroup        Outgroup for tree rooting (default: ${params.outgroup})
+      
     Optional analyses:
       --run_bootstrap   Run bootstrap analysis (default: ${params.run_bootstrap})
       --bootstrap_iterations Number of bootstrap iterations (default: ${params.bootstrap_iterations})
@@ -174,14 +178,7 @@ workflow {
     HIPSTR(MAPPING.out.bam, STATS.out.sample_stats)
     
     // Run PHYLO for phylogenetic tree construction
-    PHYLO(HIPSTR.out.alleleDict, HIPSTR.out.sample_list)    
-    
-    // // Optional analyses
-    // if (params.run_bootstrap) {
-    //     BOOTSTRAP(tree_ch, HIPSTR.out.vcf)
-    //     bootstrap_support_ch = BOOTSTRAP.out.support
-    //     bootstrap_trees_ch = BOOTSTRAP.out.trees
-    // }
+    PHYLO(HIPSTR.out.alleleDict, HIPSTR.out.sample_list)
     
     // if (params.run_evaluation) {
     //     if (params.ground_truth) {

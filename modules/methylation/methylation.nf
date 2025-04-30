@@ -3,7 +3,7 @@
 nextflow.enable.dsl=2
 
 // Process 1: Quality Control
-process fastqc {
+process METH_FASTQC {
     publishDir "${params.output_dir}/methylation/fastqc", mode: 'copy'
     container "quay.io/biocontainers/fastqc:0.12.1--hdfd78af_0"
     conda "bioconda::fastqc=0.12.1"
@@ -21,7 +21,7 @@ process fastqc {
 }
 
 // Process 2: MultiQC Report
-process multiqc {
+process METH_MULTIQC {
     publishDir "${params.output_dir}/methylation/fastqc", mode: 'copy'
     container "quay.io/biocontainers/multiqc:1.28--pyhdfd78af_0"
     conda "bioconda::multiqc=1.28"
@@ -40,7 +40,7 @@ process multiqc {
 }
 
 // Process 3: Read Preprocessing
-process trim_galore {
+process METH_TRIM_GALORE {
     publishDir "${params.output_dir}/methylation/trimmed", mode: 'copy'
     container "community.wave.seqera.io/library/trim-galore:0.6.10--1bf8ca4e1967cd18"
     conda "bioconda::trim-galore=0.6.10"
@@ -67,7 +67,7 @@ process trim_galore {
 }
 
 // Process 4: Run Methylpy
-process methylpy {
+process METHYLPY {
     publishDir "${params.output_dir}/methylation/methylpy", mode: 'copy'
     container "community.wave.seqera.io/library/pip_methylpy:ae44180dc4227f32"
     conda "bioconda::methylpy=1.4.7"
@@ -102,9 +102,8 @@ process methylpy {
     """
 }
 
-
 // Process 5: Analyze methylpy output and generate summary statistics
-process analyze_methylpy_stats {
+process ANALYZE_METHYLPY_STATS {
     publishDir "${params.output_dir}/stats", mode: 'copy'
     container "quay.io/biocontainers/python:3.9"
     conda "conda-forge::python=3.9 pandas matplotlib seaborn"
@@ -134,20 +133,20 @@ workflow METHYLATION {
     
     main:
     // Run QC on methylation reads
-    fastqc(reads)
+    METH_FASTQC(reads)
     
     // Generate QC report
-    multiqc(fastqc.out.fastqc_results.collect().ifEmpty([]))
+    METH_MULTIQC(METH_FASTQC.out.fastqc_results.collect().ifEmpty([]))
     
     // Run preprocessing on methylation reads
-    trim_galore(reads)
+    METH_TRIM_GALORE(reads)
     
     // Run methylpy
-    methylpy(trim_galore.out.trimmed_reads)
+    METHYLPY(METH_TRIM_GALORE.out.trimmed_reads)
     
     // // Analyze methylpy output and stats
-    // stats = analyze_methylpy_stats(methylpy_results.log_file.collect(), methylpy_results.results)
+    // stats = ANALYZE_METHYLPY_STATS(methylpy_results.log_file.collect(), methylpy_results.results)
     
     emit:
-    allc = methylpy.out.allc
+    allc = METHYLPY.out.allc
 }
