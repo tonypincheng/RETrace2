@@ -147,6 +147,27 @@ process hipstr_calling {
     """
 }
 
+process parse_vcf {
+    publishDir "${params.output_dir}/hipstr", mode: 'copy'
+    
+    input:
+    path(vcf_file)
+    
+    output:
+    path("${params.output_prefix}.alleleDict.pkl"), emit: alleleDict
+    
+    script:
+    """
+    python ${baseDir}/modules/hipstr/parse_vcf.py \
+        --vcf ${vcf_file} \
+        --target_bed ${params.target_bed} \
+        --output_pkl ${params.output_prefix}.alleleDict.pkl \
+        --min_qual ${params.min_qual} \
+        --min_reads ${params.min_reads} \
+        --max_stutter ${params.max_stutter}
+    """
+}
+
 workflow HIPSTR {
     take:
     bam
@@ -190,7 +211,11 @@ workflow HIPSTR {
         log_output = hipstr_calling.out.hipstr_log
     }
     
+    // Parse VCF to extract alleles
+    parse_vcf(vcf_output)
+    
     emit:
     vcf = vcf_output
     hipstr_log = log_output
+    alleleDict = parse_vcf.out.alleleDict
 } 
