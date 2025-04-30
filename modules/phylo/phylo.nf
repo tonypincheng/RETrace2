@@ -3,7 +3,6 @@
 nextflow.enable.dsl=2
 
 process BUILD_TREE {
-    tag "Building phylogenetic tree from alleles with ${params.dist_metric}"
     publishDir "${params.output_dir}/phylo", mode: 'copy'
     
     input:
