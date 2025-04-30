@@ -28,6 +28,27 @@ process BUILD_TREE {
     """
 }
 
+process VIEW_PHYLO {
+    publishDir "${params.output_dir}/phylo", mode: 'copy'
+    
+    input:
+    path(samplesheet)
+    path(tree_file)
+    
+    output:
+    path("*.viewPhylo.pdf"), emit: tree_pdf
+    path("*.viewPhylo.png"), emit: tree_png
+    
+    script:
+    """
+    python ${baseDir}/modules/phylo/view_phylo.py \\
+        --samplesheet ${samplesheet} \\
+        --tree_file ${tree_file} \\
+        --prefix ${params.output_prefix} \\
+        ${params.run_bootstrap ? "--bootstrap" : ""}
+    """
+}
+
 workflow PHYLO {
     take:
     alleleDict
@@ -36,10 +57,20 @@ workflow PHYLO {
     main:
     BUILD_TREE(alleleDict, sample_list)
     
+    // Choose tree file based on bootstrap parameter
+    tree_file = params.run_bootstrap ? BUILD_TREE.out.bootstrap_tree : BUILD_TREE.out.newick_tree
+    
+    // Create a channel from the samplesheet path
+    samplesheet_ch = Channel.fromPath(params.samplesheet)
+    
+    VIEW_PHYLO(samplesheet_ch, tree_file)
+    
     emit:
     newick_tree = BUILD_TREE.out.newick_tree
     stats = BUILD_TREE.out.stats
     dist_dict = BUILD_TREE.out.dist_dict
     bootstrap_tree = BUILD_TREE.out.bootstrap_tree
     bootstrap_stats = BUILD_TREE.out.bootstrap_stats
+    tree_pdf = VIEW_PHYLO.out.tree_pdf
+    tree_png = VIEW_PHYLO.out.tree_png
 } 
