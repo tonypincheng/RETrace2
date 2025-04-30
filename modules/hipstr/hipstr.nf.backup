@@ -155,7 +155,6 @@ process parse_vcf {
     
     output:
     path("${params.output_prefix}.alleleDict.pkl"), emit: alleleDict
-    path("${params.output_prefix}.sample_list.txt"), emit: sample_list
     
     script:
     """
@@ -163,7 +162,6 @@ process parse_vcf {
         --vcf ${vcf_file} \
         --target_bed ${params.target_bed} \
         --output_pkl ${params.output_prefix}.alleleDict.pkl \
-        --output_samples ${params.output_prefix}.sample_list.txt \
         --min_qual ${params.min_qual} \
         --min_reads ${params.min_reads} \
         --max_stutter ${params.max_stutter}
@@ -220,5 +218,4 @@ workflow HIPSTR {
     vcf = vcf_output
     hipstr_log = log_output
     alleleDict = parse_vcf.out.alleleDict
-    sample_list = parse_vcf.out.sample_list
 } 

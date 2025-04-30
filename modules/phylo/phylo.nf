@@ -3,38 +3,44 @@
 nextflow.enable.dsl=2
 
 process BUILD_TREE {
-    tag "phylo"
+    tag "Building phylogenetic tree from alleles with ${params.dist_metric}"
     publishDir "${params.output_dir}/phylo", mode: 'copy'
     
     input:
-    path(vcf_files)
+    path(alleleDict)
+    path(sample_list)
     
     output:
-    path("phylogenetic_tree.nwk"), emit: tree
-    path("distance_matrix.txt"), emit: matrix
-    path("tree_stats.txt"), emit: stats
+    path("*.buildPhylo.newick-original.txt"), emit: newick_tree
+    path("*.buildPhylo.stats.txt"), optional: true, emit: stats
+    path("*.buildPhylo.distDict.pkl"), emit: dist_dict
+    path("*.buildPhylo.newick-bootstrap.txt"), optional: true, emit: bootstrap_tree
+    path("*_bootstrap_stats.txt"), optional: true, emit: bootstrap_stats
     
     script:
     """
-    # Convert VCF to distance matrix and build phylogenetic tree
-    python $baseDir/scripts/phylo/build_tree.py \
-        --vcf $vcf_files \
-        --matrix distance_matrix.txt \
-        --tree phylogenetic_tree.nwk \
-        --stats tree_stats.txt
+    python ${baseDir}/modules/phylo/build_phylo.py \\
+        --alleleDict ${alleleDict} \\
+        --sample_list ${sample_list} \\
+        --prefix ${params.output_prefix} \\
+        --dist_metric ${params.dist_metric} \\
+        --outgroup ${params.outgroup} \\
+        ${params.run_bootstrap ? "--bootstrap --bootstrap_iterations ${params.bootstrap_iterations}" : ""}
     """
 }
 
 workflow PHYLO {
     take:
-    vcf_files
+    alleleDict
+    sample_list
     
     main:
-    // Build phylogenetic tree
-    tree_results = BUILD_TREE(vcf_files)
+    BUILD_TREE(alleleDict, sample_list)
     
     emit:
-    tree = tree_results.tree
-    matrix = tree_results.matrix
-    stats = tree_results.stats
+    newick_tree = BUILD_TREE.out.newick_tree
+    stats = BUILD_TREE.out.stats
+    dist_dict = BUILD_TREE.out.dist_dict
+    bootstrap_tree = BUILD_TREE.out.bootstrap_tree
+    bootstrap_stats = BUILD_TREE.out.bootstrap_stats
 } 

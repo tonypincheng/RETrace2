@@ -90,6 +90,9 @@ For details about the test data, see [data/README.md](data/README.md).
 - seaborn=0.13.2
 - bcftools=1.21
 - HipSTR=0.6.2 (instructions below)
+- more-itertools=10.7.0
+- scikit-bio=0.6.3
+- ete3=3.1.3
 
 > **Note:** You can also use Docker or Conda (see below) to handle dependencies automatically.
 

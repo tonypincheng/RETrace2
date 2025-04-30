@@ -109,7 +109,7 @@ Optional analyses  :
 include { MAPPING } from './modules/mapping/mapping.nf'
 include { STATS } from './modules/stats/stats.nf'
 include { HIPSTR } from './modules/hipstr/hipstr.nf'
-//include { PHYLO } from './modules/phylo/phylo.nf'
+include { PHYLO } from './modules/phylo/phylo.nf'
 
 // Conditionally include METHYLATION module
 if (params.run_methylation) {
@@ -173,7 +173,8 @@ workflow {
     // Run HipSTR for microsatellite genotyping
     HIPSTR(MAPPING.out.bam, STATS.out.sample_stats)
     
-    //PHYLO(HIPSTR.out.vcf)    
+    // Run PHYLO for phylogenetic tree construction
+    PHYLO(HIPSTR.out.alleleDict, HIPSTR.out.sample_list)    
     
     // // Optional analyses
     // if (params.run_bootstrap) {

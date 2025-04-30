@@ -127,13 +127,14 @@ def parseVCF(HipSTR_vcf, target_bed, min_qual, min_reads, max_stutter):
                                     except (ValueError, ZeroDivisionError):
                                         continue
 
-    return alleleDict
+    return alleleDict, sample_names
 
 def main():
     parser = argparse.ArgumentParser(description='Parse HipSTR VCF output to extract microsatellite alleles')
     parser.add_argument('--vcf', required=True, help='HipSTR VCF file')
     parser.add_argument('--target_bed', required=True, help='Target BED file')
     parser.add_argument('--output_pkl', required=True, help='Output pickle file for alleleDict')
+    parser.add_argument('--output_samples', required=True, help='Output file for sample list')
     parser.add_argument('--min_qual', type=float, default=0.9, help='Minimum quality score (default: 0.9)')
     parser.add_argument('--min_reads', type=int, default=10, help='Minimum number of reads (default: 10)')
     parser.add_argument('--max_stutter', type=float, default=1, help='Maximum stutter ratio (default: 1)')
@@ -141,7 +142,7 @@ def main():
     args = parser.parse_args()
     
     # Parse VCF
-    alleleDict = parseVCF(
+    alleleDict, sample_names = parseVCF(
         args.vcf,
         args.target_bed,
         args.min_qual, 
@@ -153,7 +154,12 @@ def main():
     with open(args.output_pkl, "wb") as f:
         pickle.dump(alleleDict, f)
     
+    # Save sample list to a separate file
+    with open(args.output_samples, "w") as f:
+        f.write("\n".join(sample_names))
+    
     print(f"Saved allele dictionary to {args.output_pkl}")
+    print(f"Saved sample list to {args.output_samples}")
 
 if __name__ == "__main__":
     main() 
