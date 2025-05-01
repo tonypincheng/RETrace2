@@ -1,9 +1,9 @@
 # RETrace2
 
-A Nextflow-based bioinformatics pipeline for RETrace2 analysis.
+RETrace2 is a Nextflow-based bioinformatics pipeline for processing and analyzing sequencing data to reconstruct single-cell phylogenetic trees using somatic microsatellite mutations. It integrates quality control, alignment, microsatellite genotype calling, and tree reconstruction into a streamlined workflow.
+<br>
 
 ## Table of Contents
-- [Overview](#overview)
 - [Features](#features)
 - [Pipeline Structure](#pipeline-structure)
 - [Test Data](#test-data)
@@ -21,6 +21,7 @@ A Nextflow-based bioinformatics pipeline for RETrace2 analysis.
 - [References](#references)
 - [Contact](#contact)
 
+<br>
 
 > ⚠️ **Under Active Development** ⚠️
 
@@ -35,12 +36,7 @@ A Nextflow-based bioinformatics pipeline for RETrace2 analysis.
 - [ ] Docker containerization
 - [ ] Paired-end read support
 
-
-## Overview
-
-RETrace2 is a comprehensive pipeline for processing and analyzing sequencing data to reconstruct single-cell phylogenetic trees using somatic microsatellite mutations. It integrates quality control, alignment, microsatellite genotype calling, and tree reconstruction into a streamlined workflow.
 <br>
-
 
 ## Features
 
@@ -58,8 +54,8 @@ RETrace2 is a comprehensive pipeline for processing and analyzing sequencing dat
 - Current support:
   - Single-end reads (as shown in RETrace2 paper using R1 250bp)
   - Paired-end read support planned for future releases
-<br>
 
+<br>
 
 ## Pipeline Structure
 
@@ -80,8 +76,8 @@ RETrace2/
 ├── main.nf              # Main pipeline
 └── nextflow.config      # Pipeline configuration
 ```
-<br>
 
+<br>
 
 ## Test Data
 
@@ -101,8 +97,8 @@ The repository includes small test datasets in the `data/` directory:
 - Sufficient data to test the pipeline's methylation analysis functionality
 
 For details about the test data, see [data/README.md](data/README.md).
-<br><br>
 
+<br>
 
 ## Getting Started
 
@@ -125,6 +121,7 @@ For details about the test data, see [data/README.md](data/README.md).
 - ete3=3.1.3
 
 > **Note:** You can also use Docker or Conda (see below) to handle dependencies automatically.
+<br>
 
 ### Installation
 ```bash
@@ -143,7 +140,7 @@ nextflow run main.nf --samplesheet path/to/samplesheet.csv
                      --genome mm39 \
                      --target_bed path/to/target_bed
 ```
-
+<br>
 
 ### Samplesheet
 
@@ -160,6 +157,8 @@ The pipeline uses a CSV samplesheet with the following columns:
 > **Note:** Currently, RETrace2 only supports single-end read. The columns are named with "_1" suffix to allow for future paired-end support where "_2" columns will be added.
 
 An example samplesheet has been provided in [assets/samplesheet_msh2.csv](assets/samplesheet_msh2.csv).
+
+<br>
 
 ### Parameters
 
