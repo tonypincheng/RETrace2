@@ -8,8 +8,20 @@ import ete3  # Call ETE toolkit <http://etetoolkit.org/docs/latest/tutorial/inde
 def load_sample_data(samplesheet_path):
     """Load sample information from CSV file"""
     df = pd.read_csv(samplesheet_path)
-    samples = {row['sample_id']: {'group': row['group'], 'color': row['color']} 
-              for _, row in df.iterrows()}
+    samples = {}
+    
+    for _, row in df.iterrows():
+        sample_id = row['sample_id']
+        sample_info = {}
+        
+        # Handle optional group field
+        sample_info['group'] = row['group'] if 'group' in row and not pd.isna(row['group']) else 'unknown'
+        
+        # Handle optional color field with default grey
+        sample_info['color'] = row['color'] if 'color' in row and not pd.isna(row['color']) else 'grey'
+        
+        samples[sample_id] = sample_info
+    
     return samples
 
 def setup_tree_style(show_bootstrap=False):
