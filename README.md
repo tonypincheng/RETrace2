@@ -330,7 +330,7 @@ RETrace2 is built upon the foundation of the original [RETrace](https://github.c
    - Standardized input/output interfaces
    - Better error handling and reporting
 
-Special thanks to the original RETrace developer [Chris Wei](https://github.com/cjwei) for their foundational work in microsatellite-based lineage tracing.
+Special thanks to the original RETrace developer [Chris Wei](https://github.com/cjwei) for the foundational work in microsatellite-based lineage tracing.
 
 <br>
 
