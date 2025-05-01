@@ -1,10 +1,40 @@
 # RETrace2
 
+A Nextflow-based bioinformatics pipeline for RETrace2 analysis.
+
+## Table of Contents
+- [Overview](#overview)
+- [Features](#features)
+- [Pipeline Structure](#pipeline-structure)
+- [Test Data](#test-data)
+- [Getting Started](#getting-started)
+  - [Prerequisites](#prerequisites)
+  - [Installation](#installation)
+  - [Usage](#usage)
+  - [Samplesheet](#samplesheet)
+  - [Parameters](#parameters)
+- [Environments](#environments)
+- [Reference Genome Configuration](#reference-genome-configuration)
+- [Contributing](#contributing)
+- [License](#license)
+- [Acknowledgments](#acknowledgments)
+- [References](#references)
+- [Contact](#contact)
+
+
 > ⚠️ **Under Active Development** ⚠️
 
 > This pipeline is currently under development. Features and documentation may change.
+### Implementation Progress
+- [x] Read trimming and alignment
+- [x] HipSTR microsatellite calling
+- [x] Phylogenetic tree reconstruction
+- [x] Target-based bootstrapping
+- [x] Methylation processing
+- [ ] Methylation infer cell type
+- [ ] Docker containerization
+- [ ] Paired-end read support
 
-A Nextflow-based bioinformatics pipeline for RETrace2 analysis.
 
 ## Overview
 
