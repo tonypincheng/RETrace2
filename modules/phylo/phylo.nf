@@ -45,7 +45,8 @@ process VIEW_PHYLO {
         --samplesheet ${samplesheet} \\
         --tree_file ${tree_file} \\
         --prefix ${params.output_prefix} \\
-        ${params.run_bootstrap ? "--bootstrap" : ""}
+        ${params.run_bootstrap ? "--bootstrap" : ""} \\
+        ${params.color_background ? "--color_background" : ""}
     """
 }
 

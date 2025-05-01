@@ -44,6 +44,7 @@ def helpMessage() {
     Phylogenetic parameters:
       --dist_metric     Distance metric for phylogenetic tree construction (default: ${params.dist_metric})
       --outgroup        Outgroup for tree rooting (default: ${params.outgroup})
+      --color_background Apply color to background instead of node circles (default: ${params.color_background})
       
     Optional analyses:
       --run_bootstrap   Run bootstrap analysis (default: ${params.run_bootstrap})
