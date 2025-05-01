@@ -271,12 +271,47 @@ This project is under active development. Contributions are welcome! Please:
 3. Make your changes
 4. Submit a pull request
 
+<br>
 
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
 <br>
 
+## Acknowledgments
+
+RETrace2 is built upon the foundation of the original [RETrace](https://github.com/cjwei/RETrace) pipeline. This new version represents a evolution with the following improvements:
+
+1. **Enhanced Pipeline Efficiency**
+   - Implemented with Nextflow to streamline workflow execution
+   - Improved parallelization for faster processing
+   - Simplified execution and dependency management
+
+2. **New Features**
+   - Expanded support for homopolymers through customizable target BED files
+   - Target-based bootstrapping for more robust tree reconstruction
+   - Integrated methylation analysis for cell type inference
+   - Enhanced tree visualization with customizable colors
+   - Included test datasets for quick evaluation and pipeline validation
+
+3. **Improved Code Quality**
+   - Modular design for better maintainability
+   - Comprehensive documentation
+   - Standardized input/output interfaces
+   - Better error handling and reporting
+
+Special thanks to the original RETrace developer [Chris Wei](https://github.com/cjwei) for their foundational work in microsatellite-based lineage tracing.
+
+<br>
+
+## References
+
+1. Pin-Chung Cheng, Polina Kameneva, Dmitrii Kamenev, Conor Fitzpatrick, Igor Adameyko, Peter V Kharchenko, Kun Zhang. RETrace2: Single Cell Lineage Tracing using Highly-Mutable Homopolymer in Microsatellite Instability Mouse Model. Manuscript in Preparation. (2025)
+
+2. Christopher Jen-Yue Wei, Kun Zhang. RETrace: simultaneous retrospective lineage tracing and methylation profiling of single cells. Genome research. (2020). https://doi.org/10.1101/gr.255851.119
+
+<br>
 
 ## Contact
 
