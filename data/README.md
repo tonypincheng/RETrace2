@@ -47,12 +47,14 @@ Files are named according to the following convention:
 These files contain microsatellite data with the following characteristics:
 - Part of the HCT116 cell culture tree model
 - 12k probe set (a smaller subset of the full probe set for testing)
-- Targeting homopolymers between 10-14bp repeat lengths
+- Targeting homopolymers between 10-14bp
 - Single cell samples
 - Includes ground truth data for validation
 
 ### MSH2 Mouse Data
 These files contain:
+- Full 169k probe set
+- Targeting homopolymers between 10-30bp
 - Both microsatellite and methylation data
 - Designed for testing dual-omic pipeline capabilities
 
