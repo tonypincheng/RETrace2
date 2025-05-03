@@ -61,7 +61,7 @@ RETrace2 is a Nextflow-based bioinformatics pipeline for processing and analyzin
 
 ```
 RETrace2/
-├── bin/                 # Utility scripts
+├── assests/             # samplesheet
 ├── data/                # test data
 ├── modules/             # Nextflow modules
 │   ├── mapping/         # Read trimming and alignment
