@@ -3,7 +3,6 @@
 nextflow.enable.dsl=2
 
 process EVALUATE_TREE {
-    tag "evaluation"
     publishDir "${params.output_dir}/evaluation", mode: 'copy'
     
     input:
