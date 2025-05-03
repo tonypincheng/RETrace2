@@ -3,7 +3,7 @@ import os
 import argparse
 import pandas as pd
 os.environ['QT_QPA_PLATFORM']='offscreen' #Fix for remote ssh tree render <https://github.com/etetoolkit/ete/issues/387>
-import ete3  # Call ETE toolkit <http://etetoolkit.org/docs/latest/tutorial/index.html>
+import ete3  
 
 def load_sample_data(samplesheet_path):
     """Load sample information from CSV file"""
@@ -46,6 +46,8 @@ def style_tree_nodes(tree, sample_data, color_background=False):
         if node.is_leaf():
             # Skip nodes not in sample data (like outgroups)
             if node.name not in sample_data:
+                print(f"Node {node.name} not in sample data")
+                print(f"Sample data keys: {sample_data.keys()}")
                 continue
                 
             color = sample_data[node.name]['color']
@@ -77,8 +79,8 @@ def style_tree_nodes(tree, sample_data, color_background=False):
 
 def render_tree(tree, prefix, tree_style):
     """Render tree to PDF and PNG files"""
-    tree.render(f"{prefix}.viewPhylo.pdf", tree_style=tree_style, dpi=180)
-    tree.render(f"{prefix}.viewPhylo.png", tree_style=tree_style, dpi=180)
+    tree.render(f"{prefix}.viewPhylo.pdf", tree_style=tree_style, dpi=300)
+    tree.render(f"{prefix}.viewPhylo.png", tree_style=tree_style, dpi=300)
 
 def viewPhylo(samplesheet, tree_file, prefix, bootstrap, color_background=False):
     """

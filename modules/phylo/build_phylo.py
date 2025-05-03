@@ -10,6 +10,7 @@ import ete3
 import numpy as np
 import statistics
 import argparse
+import re
 
 def calcBulk(alleleDict):
     """
@@ -89,6 +90,14 @@ def makeDistMatrix(sharedDict, alleleDict, sample_list, dist_metric):
                 distDict = calcDist(alleleDict, distDict, sample_pair, sample1, sample2, sharedDict[sample_pair], dist_metric, sample_list)
     return distDict
 
+def clean_node_names(tree):
+    """Remove quotes from node names in an ETE3 tree.
+    """
+    for node in tree.traverse():
+        if node.name and node.name.startswith("'") and node.name.endswith("'"):
+            node.name = node.name[1:-1]
+    return tree
+
 def drawTree(distDict, sample_list, outgroup, prefix, bootstrap):
     print(f"\tDrawing tree: Building distance matrix for {len(sample_list)} samples...")
     distMatrix = [[distDict["sampleComp"][tuple(sorted([s1, s2]))]["dist"] 
@@ -119,14 +128,21 @@ def drawTree(distDict, sample_list, outgroup, prefix, bootstrap):
 
     print(f"\tDrawing tree: Creating DistanceMatrix...")
     distObj = skbio.DistanceMatrix(distMatrix, sorted(sample_list))
+    
     print(f"\tDrawing tree: Running NJ algorithm...")
     try:
-        skbio_tree = skbio.tree.nj(distObj, result_constructor=str)
+        skbio_tree = skbio.tree.nj(distObj)
+        # Convert skbio TreeNode to newick string
+        newick_str = str(skbio_tree)
+        print(f"\tDrawing tree: Converting to ETE tree...")
+        ete_tree = ete3.Tree(newick_str)
+        # Clean node names
+        ete_tree = clean_node_names(ete_tree)
+        
     except Exception as e:
         print(f"\tNJ failed: {e}")
         raise
-    print(f"\tDrawing tree: Converting to ETE tree...")
-    ete_tree = ete3.Tree(skbio_tree)
+    
     if outgroup != "NA":
         print(f"\tDrawing tree: Setting outgroup {outgroup}...")
         if outgroup == "Midpoint":
@@ -154,7 +170,9 @@ def bootstrap_iteration(args):
     
     distDict_temp = makeDistMatrix(bootstrap_sharedDict, alleleDict, sample_list, dist_metric)
     print(f"\tIteration {i}: Drawing tree...")
-    return drawTree(distDict_temp, sample_list, outgroup, prefix, True)
+    tree_temp = drawTree(distDict_temp, sample_list, outgroup, prefix, True)
+    # Note: No need to clean node names here as drawTree already does it
+    return tree_temp
 
 def bootstrapTree(nodeDict, treeTemp, bootstrap_samples):
     tempNodes = set()
@@ -203,6 +221,7 @@ def buildPhylo(sample_list_file, prefix, alleleDict_file, dist_metric, outgroup,
     
     print("Drawing tree...")
     MStree = drawTree(distDict_original, sample_list, outgroup, prefix, False)
+
     print("Saving newick tree...")
     with open(prefix + '.buildPhylo.newick-original.txt', 'w') as f:
         f.write(MStree.write(format=0) + "\n")
