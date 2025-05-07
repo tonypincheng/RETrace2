@@ -135,7 +135,7 @@ def merge_data(ms_data, cpg_data=None):
 def create_plots(df, output_dir):
     """Create visualization plots for summary statistics"""
     # Set the style
-    sns.set(style="whitegrid")
+    sns.set_theme(style="whitegrid")
     
     # Create figures directory if it doesn't exist
     figures_dir = os.path.join(output_dir, 'figures')
@@ -146,13 +146,13 @@ def create_plots(df, output_dir):
     
     # Plot 1: Bar plot of MS targets per sample
     plt.figure(figsize=(max(10, len(df)*0.3), 8))
-    ax = sns.barplot(data=df_sorted, x='sample_id', y='ms_targets_with_min_reads', hue='pass')
+    ax = sns.barplot(data=df_sorted, x='sample_id', y='ms_targets_with_min_reads', hue='pass', hue_order=[True, False])
     plt.axhline(y=df_sorted.iloc[0]['min_targets_per_sample'], color='red', linestyle='--',
                label=f'Min threshold: {df_sorted.iloc[0]["min_targets_per_sample"]}')
-    plt.title('Microsatellite Targets per Sample')
-    plt.xlabel('Sample ID')
-    plt.ylabel('Number of Microsatellite Targets')
-    plt.xticks(rotation=45)
+    plt.title('Microsatellite Targets per Sample', fontsize=18)
+    plt.xlabel('Sample ID', fontsize=16)
+    plt.ylabel('Number of Microsatellite Targets\n', fontsize=16)
+    plt.xticks(rotation=45, ha='right')
     plt.legend()
     plt.tight_layout()
     # Save in both formats
@@ -164,13 +164,13 @@ def create_plots(df, output_dir):
     if 'cpg_count' in df.columns and df['cpg_count'].sum() > 0:
         # Plot 2: Bar plot of CpG counts per sample (using the same sample_id sorted order)
         plt.figure(figsize=(max(10, len(df)*0.3), 8))
-        ax = sns.barplot(data=df_sorted, x='sample_id', y='cpg_count', hue='pass')
+        ax = sns.barplot(data=df_sorted, x='sample_id', y='cpg_count', hue='pass', hue_order=[True, False])
         plt.axhline(y=df_sorted.iloc[0]['min_cpgs_per_sample'], color='red', linestyle='--',
                    label=f'Min threshold: {df_sorted.iloc[0]["min_cpgs_per_sample"]}')
-        plt.title('CpG Counts per Sample')
-        plt.xlabel('Sample ID')
-        plt.ylabel('Number of CpGs')
-        plt.xticks(rotation=45)
+        plt.title('CpG Counts per Sample', fontsize=18)
+        plt.xlabel('Sample ID', fontsize=16)
+        plt.ylabel('Number of CpGs\n', fontsize=16)
+        plt.xticks(rotation=45, ha='right')
         plt.legend()
         plt.tight_layout()
         # Save in both formats
@@ -285,8 +285,8 @@ def main():
         
         # All samples stats
         f.write("All Samples Statistics:\n")
-        f.write(f"Mean microsatellite targets with min reads: {summary['mean_ms_targets_with_min_reads']:.2f}\n")
-        f.write(f"Median microsatellite targets with min reads: {summary['median_ms_targets_with_min_reads']:.2f}\n")
+        f.write(f"Mean microsatellite targets (with min reads): {summary['mean_ms_targets_with_min_reads']:.2f}\n")
+        f.write(f"Median microsatellite targets (with min reads): {summary['median_ms_targets_with_min_reads']:.2f}\n")
         
         if args.allc_files:
             f.write(f"Mean CpG count: {summary['mean_cpg_count']:.2f}\n")
