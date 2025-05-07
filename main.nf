@@ -211,13 +211,14 @@ workflow.onComplete {
         - Microsatellite statistics: ${params.output_dir}/stats/ms_counts/
         - Summary statistics: ${params.output_dir}/stats/
         - HipSTR genotyping: ${params.output_dir}/hipstr/
+        - Phylogenetic tree: ${params.output_dir}/phylo/newick-orginal.txt
         """
         
         if (params.run_bootstrap) {
             log.info """
         Bootstrap results:
-        - Support values: ${params.output_dir}/bootstrap/bootstrap_support.txt
-        - Bootstrap trees: ${params.output_dir}/bootstrap/bootstrap_trees.nwk
+        - Support values: ${params.output_dir}/phylo/bootstrap_stats.txt
+        - Bootstrap trees: ${params.output_dir}/phylo/newwick-bootstrap.txt
             """
         }
         
