@@ -34,6 +34,16 @@ def calcBulk(alleleDict):
     return alleleDict
 
 def calcDist(alleleDict, distDict, sample_pair, sample1, sample2, shared_targets, dist_metric, sample_list):
+    """
+    Calculate genetic distance between two samples based on their microsatellite profiles.
+            
+    Distance Metrics:
+    ----------------
+    - minComp: Compares only the minimum number of alleles between samples (reduces allele dropout effect)
+    - allComp: Compares all possible pairs of alleles between samples (assumes both alleles are present)
+    - EqorNot: Binary distance - counts alleles as either matching (0) or different (1)
+    - Abs: Continuous distance - uses the absolute difference between allele sizes
+    """
     if sample1 != sample2:
         total_dist = 0
         num_comp = 0
