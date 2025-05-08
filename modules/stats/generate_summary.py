@@ -291,8 +291,8 @@ def main():
         if args.allc_files:
             f.write(f"Mean CpG count: {summary['mean_cpg_count']:.2f}\n")
             f.write(f"Median CpG count: {summary['median_cpg_count']:.2f}\n")
-            f.write(f"Mean methylation rate: {summary['mean_methylation_rate']:.4f}\n")
-            f.write(f"Median methylation rate: {summary['median_methylation_rate']:.4f}\n\n")
+            f.write(f"Mean CpG methylation rate: {summary['mean_methylation_rate']:.4f}\n")
+            f.write(f"Median CpG methylation rate: {summary['median_methylation_rate']:.4f}\n\n")
         
         # Filtered samples stats
         if len(filtered_df) > 0:
@@ -303,8 +303,8 @@ def main():
             if args.allc_files:
                 f.write(f"Mean CpG count: {summary['filtered_mean_cpg_count']:.2f}\n")
                 f.write(f"Median CpG count: {summary['filtered_median_cpg_count']:.2f}\n")
-                f.write(f"Mean methylation rate: {summary['filtered_mean_methylation_rate']:.4f}\n")
-                f.write(f"Median methylation rate: {summary['filtered_median_methylation_rate']:.4f}\n")
+                f.write(f"Mean CpG methylation rate: {summary['filtered_mean_methylation_rate']:.4f}\n")
+                f.write(f"Median CpG methylation rate: {summary['filtered_median_methylation_rate']:.4f}\n")
     
     # Generate plots if not disabled
     if not args.no_plots:
