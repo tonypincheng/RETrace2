@@ -102,27 +102,6 @@ For details about the test data, see [data/README.md](data/README.md).
 
 ## Getting Started
 
-### Prerequisites
-- nextflow=24.10.5
-- fastqc=0.12.1
-- multiqc=1.28
-- python=3.9
-- trim-galore=0.6.10
-- methylpy=1.4.7
-- bwa=0.7.19
-- pysam=0.22.1
-- samtools=1.21
-- matplotlib=3.9.4
-- seaborn=0.13.2
-- bcftools=1.21
-- HipSTR=0.6.2 (instructions below)
-- more-itertools=10.7.0
-- scikit-bio=0.6.3
-- ete3=3.1.3
-
-> **Note:** You can also use Docker or Conda (see below) to handle dependencies automatically.
-<br>
-
 ### Installation
 ```bash
 git clone https://github.com/tonypincheng/retrace2.git
@@ -183,6 +162,27 @@ For a full list of parameters, run `nextflow run main.nf --help`.
 
 ## Environments
 RETrace2 supports multiple execution environments through Nextflow profiles.
+
+### Prerequisites
+- nextflow=24.10.6
+- fastqc=0.12.1
+- multiqc=1.28
+- python=3.9
+- trim-galore=0.6.10
+- methylpy=1.4.7
+- bwa=0.7.19
+- pysam=0.22.1
+- samtools=1.21
+- matplotlib=3.9.4
+- seaborn=0.13.2
+- bcftools=1.21
+- HipSTR=0.6.2 (instructions below)
+- more-itertools=10.7.0
+- scikit-bio=0.6.3
+- ete3=3.1.3
+
+> **Note:** You can also use Docker or Conda (see below) to handle dependencies automatically.
+<br>
 
 ### Standard (Default)
 By default, the pipeline runs using your system's native tools without Docker or Conda.
