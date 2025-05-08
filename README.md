@@ -213,7 +213,7 @@ cd HipSTR
 make
 
 ```
-Add the HipSTR executable to your PATH or specify full path when running. 
+Add the HipSTR executable to your PATH or specify full path using `--hipstr_path`. 
 
 For more information, visit [HipSTR](https://github.com/HipSTR-Tool/HipSTR).
 
