@@ -24,12 +24,13 @@ def load_sample_data(samplesheet_path):
     
     return samples
 
-def setup_tree_style(show_bootstrap=False):
+def setup_tree_style(show_bootstrap=False, circular=False):
     """Configure tree style settings"""
     ts = ete3.TreeStyle()
     ts.show_leaf_name = False
     ts.show_branch_length = False
     ts.show_branch_support = show_bootstrap
+    ts.mode = 'c' if circular else 'r'  # 'c' for circular, 'r' for rectangular
     return ts
 
 def style_tree_nodes(tree, sample_data, color_background=False):
@@ -40,6 +41,9 @@ def style_tree_nodes(tree, sample_data, color_background=False):
         sample_data: Dictionary of sample information
         color_background: If True, applies color to background instead of node
     """
+    # Set larger text size for better readability
+    text_size = 16
+    
     for node in tree.traverse():
         nstyle = ete3.NodeStyle()
         
@@ -59,7 +63,7 @@ def style_tree_nodes(tree, sample_data, color_background=False):
                 node.set_style(nstyle)
                 
                 # Create text with colored background
-                name_face = ete3.TextFace(' ' + node.name + ' ', fgcolor='black', fsize=10)
+                name_face = ete3.TextFace(' ' + node.name + ' ', fgcolor='black', fsize=text_size)
                 node.add_face(name_face, column=0, position='branch-right')
             else:
                 # Default: apply color to node circle
@@ -69,7 +73,7 @@ def style_tree_nodes(tree, sample_data, color_background=False):
                 node.set_style(nstyle)
                 
                 # Plain text without background color
-                name_face = ete3.TextFace(' ' + node.name, fgcolor='black', fsize=10)
+                name_face = ete3.TextFace(' ' + node.name, fgcolor='black', fsize=text_size)
                 node.add_face(name_face, column=0, position='branch-right')
         else:
             nstyle["size"] = 0
@@ -82,7 +86,7 @@ def render_tree(tree, prefix, tree_style):
     tree.render(f"{prefix}.viewPhylo.pdf", tree_style=tree_style, dpi=300)
     tree.render(f"{prefix}.viewPhylo.png", tree_style=tree_style, dpi=300)
 
-def viewPhylo(samplesheet, tree_file, prefix, bootstrap, color_background=False):
+def viewPhylo(samplesheet, tree_file, prefix, bootstrap, color_background=False, circular=False):
     """
     Visualize phylogenetic tree with colored nodes based on sample information
     """
@@ -91,7 +95,7 @@ def viewPhylo(samplesheet, tree_file, prefix, bootstrap, color_background=False)
     tree = ete3.Tree(tree_file)
     
     # Setup and apply styling
-    tree_style = setup_tree_style(bootstrap)
+    tree_style = setup_tree_style(bootstrap, circular)
     styled_tree = style_tree_nodes(tree, sample_data, color_background)
     
     # Render output files
@@ -105,9 +109,12 @@ def main():
     parser.add_argument('--bootstrap', action='store_true', help='Show bootstrap values')
     parser.add_argument('--color_background', action='store_true', 
                        help='Apply colors to text background instead of node circles')
+    parser.add_argument('--circular', action='store_true', 
+                       help='Draw tree in circular layout instead of rectangular')
     
     args = parser.parse_args()
-    viewPhylo(args.samplesheet, args.tree_file, args.prefix, args.bootstrap, args.color_background)
+    viewPhylo(args.samplesheet, args.tree_file, args.prefix, args.bootstrap, 
+             args.color_background, args.circular)
 
 if __name__ == '__main__':
     main() 
