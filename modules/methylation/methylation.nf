@@ -103,27 +103,21 @@ process METHYLPY {
 }
 
 // Process 5: Analyze methylpy output and generate summary statistics
-process CALCUALE_PD_MATRIX {
-    publishDir "${params.output_dir}/methylation/infer_celltype", mode: 'copy'
+// process CALCUALE_PD_MATRIX {
+//     publishDir "${params.output_dir}/methylation/infer_celltype", mode: 'copy'
 
     
-    input:
-    path(log_files)
-    path(tsv_files)
+//     input:
+//     path(tsv_files)
     
-    output:
-    path("detailed_stats.csv"), emit: detailed_stats
-    path("summary_stats.txt"), emit: summary_stats
-    path("methylpy_summary_plot.pdf"), emit: summary_plot
+//     output:
+
     
-    script:
-    """
-    python ${task.moduleDir}/analyze_methylpy_stats.py \
-        --log ${log_files} \
-        --tsv-dir . \
-        --output-dir .
-    """
-}
+//     script:
+//     """
+
+//     """
+// }
 
 // Module workflow
 workflow METHYLATION {
