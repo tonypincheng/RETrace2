@@ -103,10 +103,9 @@ process METHYLPY {
 }
 
 // Process 5: Analyze methylpy output and generate summary statistics
-process ANALYZE_METHYLPY_STATS {
-    publishDir "${params.output_dir}/stats", mode: 'copy'
-    container "quay.io/biocontainers/python:3.9"
-    conda "conda-forge::python=3.9 pandas matplotlib seaborn"
+process CALCUALE_PD_MATRIX {
+    publishDir "${params.output_dir}/methylation/infer_celltype", mode: 'copy'
+
     
     input:
     path(log_files)
