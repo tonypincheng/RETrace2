@@ -46,7 +46,8 @@ process VIEW_PHYLO {
         --tree_file ${tree_file} \\
         --prefix ${params.output_prefix} \\
         ${params.run_bootstrap ? "--bootstrap" : ""} \\
-        ${params.color_background ? "--color_background" : ""}
+        ${params.color_background ? "--color_background" : ""} \\
+        ${params.circular_tree ? "--circular" : ""}
     """
 }
 

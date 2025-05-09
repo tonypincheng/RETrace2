@@ -45,6 +45,7 @@ def helpMessage() {
       --dist_metric     Distance metric for phylogenetic tree construction (default: ${params.dist_metric})
       --outgroup        Outgroup for tree rooting (default: ${params.outgroup})
       --color_background Apply color to background instead of node circles (default: ${params.color_background})
+      --circular_tree   Render phylogenetic tree in circular layout (default: ${params.circular_tree})
       
     Optional analyses:
       --run_bootstrap   Run bootstrap analysis (default: ${params.run_bootstrap})
@@ -102,6 +103,11 @@ HipSTR parameters  :
   - Min quality    : ${params.min_qual}
   - Min reads      : ${params.min_reads}
   - Max stutter    : ${params.max_stutter}
+Phylogenetic parameters:
+  - Distance metric: ${params.dist_metric}
+  - Outgroup       : ${params.outgroup}
+  - Color background: ${params.color_background}
+  - Circular layout: ${params.circular_tree}
 Optional analyses  :
   - Bootstrap      : ${params.run_bootstrap}
   - Evaluation     : ${params.run_evaluation}
