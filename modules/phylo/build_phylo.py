@@ -53,7 +53,7 @@ def calcDist(alleleDict, distDict, sample_pair, sample1, sample2, shared_targets
                 allelotype2 = list(set(alleleDict[target_id]["sample"][sample2]["allelotype"]).intersection(set(allele_group)))
                 if "minComp" in dist_metric:
                     dist_list = []
-                    n = min(len(allelotype1), len(allelotype2))
+                    n = min(len(allelotype1), len(allelotype2)) # number of alleles to compare
                     if n == 0:
                         continue
                     for i in range(0, len(allelotype1), n):
