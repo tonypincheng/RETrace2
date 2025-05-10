@@ -41,7 +41,7 @@ process METH_MULTIQC {
 
 // Process 3: Read Preprocessing
 process METH_TRIM_GALORE {
-    publishDir "${params.output_dir}/methylation/trimmed", mode: 'copy'
+    publishDir "${params.output_dir}/methylation/trimmed", mode: 'symlink'
     container "community.wave.seqera.io/library/trim-galore:0.6.10--1bf8ca4e1967cd18"
     conda "bioconda::trim-galore=0.6.10"
 
