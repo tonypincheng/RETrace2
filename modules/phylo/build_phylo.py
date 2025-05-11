@@ -39,7 +39,7 @@ def calcDist(alleleDict, distDict, sample_pair, sample1, sample2, shared_targets
             
     Distance Metrics:
     ----------------
-    - minComp: Compares only the minimum number of alleles between samples (reduces allele dropout effect)
+    - minComp: Compares only the minimum number of alleles between samples (assumes allele dropout and choose the minimum possible distance)
     - allComp: Compares all possible pairs of alleles between samples (assumes both alleles are present)
     - EqorNot: Binary distance - counts alleles as either matching (0) or different (1)
     - Abs: Continuous distance - uses the absolute difference between allele sizes
