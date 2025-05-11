@@ -381,10 +381,10 @@ if __name__ == "__main__":
     
     print(f"\nStatistics saved to '{stats_file}'")
     
-    # Visualize the distribution and save the plot with improved binning
+    # Visualize the distribution 
     plt.figure(figsize=(8, 5), dpi=300)
 
-    bins = np.arange(0, 100 + 5, 5)  # Bins from 0 to 100 with 5% increments
+    bins = np.arange(0, 100 + 5, 5)
     plt.hist(random_percentages, bins=bins, edgecolor='black')
     plt.axvline(x=observed_percentage, color='red', linestyle='dashed', linewidth=2)
     plt.title("Permutation Test: Shuffle Group Labels\n", fontsize=14)
@@ -402,10 +402,6 @@ if __name__ == "__main__":
     plt.savefig(histogram_file, dpi=300, bbox_inches='tight') 
     print(f"Histogram saved to '{histogram_file}'")
     
-    # Show plot if display is available
-    if os.environ.get('DISPLAY'):
-        plt.show()
-    
-    plt.close()  # Close the figure to free memory
+    plt.close()
     
     print("\n========== Permutation Test Complete ==========\n")
