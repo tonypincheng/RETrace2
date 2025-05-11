@@ -12,7 +12,7 @@ from tqdm import tqdm  # Import tqdm for progress bars
 # Set a random seed for reproducibility
 random.seed(42)  # You can change 42 to any integer for a different but reproducible sequence
 
-def read_tissue_mapping(file_path):
+def read_group_mapping(file_path):
     """
     Read the samplesheet file and extract sample IDs and group information.
     Expects columns named 'sample_id' and 'group'.
@@ -302,7 +302,7 @@ if __name__ == "__main__":
     
     # Load group mapping from samplesheet
     print("Loading group mapping from samplesheet...")
-    group_dc = read_tissue_mapping(args.samplesheet)
+    group_dc = read_group_mapping(args.samplesheet)
     
     if not group_dc:
         print("Unable to proceed without group mappings. Exiting.")
