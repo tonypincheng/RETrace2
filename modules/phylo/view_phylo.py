@@ -29,8 +29,12 @@ def setup_tree_style(show_bootstrap=False, circular=False):
     ts = ete3.TreeStyle()
     ts.show_leaf_name = False
     ts.show_branch_length = False
-    ts.show_branch_support = show_bootstrap
+    #ts.show_branch_support = show_bootstrap
+    ts.show_branch_support = False # set this to False becasue we are customizing the support text (see below)
     ts.mode = 'c' if circular else 'r'  # 'c' for circular, 'r' for rectangular
+    
+    ts.branch_vertical_margin = 5
+    
     return ts
 
 def style_tree_nodes(tree, sample_data, color_background=False):
@@ -42,10 +46,14 @@ def style_tree_nodes(tree, sample_data, color_background=False):
         color_background: If True, applies color to background instead of node
     """
     # Set larger text size for better readability
-    text_size = 16
+    text_size = 18
+    support_text_size = 18
     
     for node in tree.traverse():
         nstyle = ete3.NodeStyle()
+        
+        nstyle["hz_line_width"] = 2  # Thickness for horizontal lines
+        nstyle["vt_line_width"] = 2  # Thickness for vertical lines
         
         if node.is_leaf():
             # Skip nodes not in sample data (like outgroups)
@@ -75,16 +83,24 @@ def style_tree_nodes(tree, sample_data, color_background=False):
                 # Plain text without background color
                 name_face = ete3.TextFace(' ' + node.name, fgcolor='black', fsize=text_size)
                 node.add_face(name_face, column=0, position='branch-right')
+            
         else:
             nstyle["size"] = 0
+            
+            # Customize support text to be larger
+            if node.support is not None:  # Check if support value exists
+                support_text = f"{node.support:.2f}  "  # add space after support text for better visualization
+                support_face = ete3.TextFace(support_text, fgcolor='#8B0000', fsize=support_text_size)
+                node.add_face(support_face, column=2, position='branch-bottom')  
             node.set_style(nstyle)
             
     return tree
 
 def render_tree(tree, prefix, tree_style):
     """Render tree to PDF and PNG files"""
-    tree.render(f"{prefix}.viewPhylo.pdf", tree_style=tree_style, dpi=300)
-    tree.render(f"{prefix}.viewPhylo.png", tree_style=tree_style, dpi=300)
+    tree.render(f"{prefix}.viewPhylo.pdf", tree_style=tree_style, dpi=500)
+    tree.render(f"{prefix}.viewPhylo.png", tree_style=tree_style, dpi=500)
+    
 
 def viewPhylo(samplesheet, tree_file, prefix, bootstrap, color_background=False, circular=False):
     """
