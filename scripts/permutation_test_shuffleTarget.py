@@ -472,7 +472,7 @@ def run_permutation_test(parseVCF, load_target_bed):
     plt.figure(figsize=(10, 5), dpi=300)
     
     bins = np.arange(0, 100 + 5, 5)
-    plt.hist(permuted_percentages, bins=bins, edgecolor='black')
+    plt.hist(permuted_percentages, bins=bins, edgecolor='black', color='tab:orange')
     plt.axvline(x=observed_percentage, color='red', linestyle='dashed', linewidth=2)
     plt.title("Permutation Test: Shuffle Microsatellite Genotypes\n", fontsize=14)
     plt.xlabel("\nPercentage of Same-Tissue Pairs (%)")
