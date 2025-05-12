@@ -15,12 +15,6 @@ from multiprocessing import Pool
 import matplotlib.pyplot as plt
 import argparse
 
-# Add the parent directory to the Python path to find the modules package
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
-# Import parsing functions from modules/hipstr/parse_vcf.py
-from modules.hipstr.parse_vcf import parseVCF, load_target_bed
-
 # ----------------------------
 # Set up argument parser
 # ----------------------------
@@ -28,6 +22,7 @@ def parse_arguments():
     parser = argparse.ArgumentParser(description="Perform permutation test by shuffling microsatellite (target) genotypes from a VCF file")
     
     # Required arguments
+    parser.add_argument("--retrace2_dir", required=True, help="Path to the RETrace2 repository")
     parser.add_argument("--samplesheet", required=True, help="Path to samplesheet file")
     parser.add_argument("--target_bed", required=True, help="Path to target BED file")
     parser.add_argument("--input_vcf", required=True, help="Path to input VCF file")
@@ -36,8 +31,6 @@ def parse_arguments():
     
     # Optional arguments with defaults (Use the same setting as how you processed your observed data)
     parser.add_argument("--output_prefix", default="permutation_test", help="Prefix for output files (default: permutation_test)")
-    parser.add_argument("--build_phylo_path", default="modules/phylo/build_phylo.py", 
-                       help="Path to build_phylo.py script (default: modules/phylo/build_phylo.py)")
     parser.add_argument("--permuted_vcfs_dir", default="permuted_vcfs", help="Directory for permuted VCFs (default: permuted_vcfs)")
     parser.add_argument("--permuted_pkls_dir", default="permuted_pkls", help="Directory for permuted pickle files (default: permuted_pkls)")
     parser.add_argument("--phylo_output_dir", default="permuted_phylo", help="Directory for phylogeny output (default: permuted_phylo)")
@@ -47,11 +40,19 @@ def parse_arguments():
     parser.add_argument("--max_stutter", type=float, default=1.0, help="Maximum stutter fraction (default: 1.0)")
     parser.add_argument("--dist_metric", default="EqorNot_minComp", 
                        help="Distance metric to use for phylogeny construction (default: EqorNot_minComp)")
-    parser.add_argument("--outgroup", default="None", 
+    parser.add_argument("--outgroup", default="Midpoint", 
                        help="Outgroup to use for rooting the phylogenetic tree (default: None)")
     parser.add_argument("--n_processes", type=int, default=4, help="Number of processes for multiprocessing (default: 4)")
     
-    return parser.parse_args()
+    args = parser.parse_args()
+    
+    # Add RETrace2 directory to Python path
+    sys.path.insert(0, args.retrace2_dir)
+    
+    # Set paths for build_phylo.py and other modules
+    args.build_phylo_path = os.path.join(args.retrace2_dir, "modules", "phylo", "build_phylo.py")
+    
+    return args
 
 # ----------------------------
 # STEP 1: Shuffle VCF functions
@@ -102,8 +103,8 @@ def process_permutation(perm, df, sample_names, header_lines, output_dir):
 
 def process_single_vcf(args_tuple):
     """Process a single VCF file (for multiprocessing)"""
-    target_bed, vcf_file, output_dir, min_qual, min_reads, max_stutter = args_tuple
-    alleleDict, _ = parseVCF(vcf_file, target_bed, min_qual, min_reads, max_stutter)
+    parseVCF_func, target_bed, vcf_file, output_dir, min_qual, min_reads, max_stutter = args_tuple
+    alleleDict, _ = parseVCF_func(vcf_file, target_bed, min_qual, min_reads, max_stutter)
     base_name = os.path.basename(vcf_file).replace('.vcf', '.pkl')
     output_file = os.path.join(output_dir, base_name)
     with open(output_file, 'wb') as f:
@@ -273,38 +274,54 @@ def process_pkl(pkl_file):
     """Process a single pickle file to build a phylogenetic tree and analyze tissue clustering"""
     prefix = os.path.join(args.phylo_output_dir, f"{args.output_prefix}.perm_{os.path.basename(pkl_file).replace('.pkl', '')}")
     
+    # Check if build_phylo_path exists
+    if not os.path.exists(args.build_phylo_path):
+        print(f"WARNING: build_phylo.py not found at {args.build_phylo_path}")
+        return 0  # Return zero if we can't run the analysis
+    
     # Build phylogeny using modules/phylo/build_phylo.py
     cmd_build = [
         "python", args.build_phylo_path,
-        "--alleleDict", pkl_file,
-        "--sample_list", args.sample_list,
-        "--prefix", prefix,
+        "--alleleDict", os.path.abspath(pkl_file),
+        "--sample_list", os.path.abspath(args.sample_list),
+        "--prefix", os.path.abspath(prefix),
         "--dist_metric", args.dist_metric,
         "--outgroup", args.outgroup
     ]
-    subprocess.run(cmd_build, check=True)
     
-    # Load tree (original, not bootstrap)
-    tree_file = f"{prefix}.newick"
-    tree = Phylo.read(tree_file, "newick")
-    tissues = read_group_mapping(args.samplesheet)
-    percentage, _, _ = count_same_tissue_pairs(tree, tissues)
-    return percentage
+    try:
+        subprocess.run(cmd_build, check=True)
+        
+        # Load tree
+        tree_file = f"{prefix}.buildPhylo.newick-original.txt"
+        if not os.path.exists(tree_file):
+            print(f"WARNING: Tree file not found at {tree_file}")
+            return 0
+            
+        tree = Phylo.read(tree_file, "newick")
+        tissues = read_group_mapping(args.samplesheet)
+        percentage, _, _ = count_same_tissue_pairs(tree, tissues)
+        return percentage
+    except (subprocess.CalledProcessError, FileNotFoundError) as e:
+        print(f"Error running build_phylo.py: {e}")
+        return 0
 
 def process_observed():
     """Process the observed data to build a phylogenetic tree and analyze tissue clustering"""
     prefix = os.path.join(args.phylo_output_dir, f"{args.output_prefix}")
     cmd_build = [
         "python", args.build_phylo_path,
-        "--alleleDict", args.observed_pkl,
-        "--sample_list", args.sample_list,
-        "--prefix", prefix,
+        "--alleleDict", os.path.abspath(args.observed_pkl),
+        "--sample_list", os.path.abspath(args.sample_list),
+        "--prefix", os.path.abspath(prefix),
         "--dist_metric", args.dist_metric,
         "--outgroup", args.outgroup
     ]
+    
+    print(f"Running command: {' '.join(cmd_build)}")
     subprocess.run(cmd_build, check=True)
     
-    tree_file = f"{prefix}.newick"
+    tree_file = f"{prefix}.buildPhylo.newick-original.txt"
     tree = Phylo.read(tree_file, "newick")
     tissues = read_group_mapping(args.samplesheet)
     percentage, comparisons, pairs = count_same_tissue_pairs(tree, tissues)
@@ -314,7 +331,7 @@ def process_observed():
 # Main function to run all steps
 # ----------------------------
 
-def run_permutation_test():
+def run_permutation_test(parseVCF, load_target_bed):
     start_time = time.time()
     
     # Ensure all required directories exist
@@ -368,7 +385,7 @@ def run_permutation_test():
     print(f"Found {len(permuted_vcf_files)} permuted VCF files to process.")
     
     # Prepare arguments for each process
-    args_list = [(target_bed, vcf_file, args.permuted_pkls_dir, args.min_qual, args.min_reads, args.max_stutter) 
+    args_list = [(parseVCF, target_bed, vcf_file, args.permuted_pkls_dir, args.min_qual, args.min_reads, args.max_stutter) 
                  for vcf_file in permuted_vcf_files]
     
     # Use multiprocessing Pool
@@ -481,5 +498,12 @@ if __name__ == "__main__":
     # Parse command-line arguments
     args = parse_arguments()
     
+    # Make sure RETrace2 path is absolute
+    args.retrace2_dir = os.path.abspath(args.retrace2_dir)
+    print(f"Using RETrace2 from: {args.retrace2_dir}")
+    
+    # Now that we have the RETrace2 path, import the necessary modules
+    from modules.hipstr.parse_vcf import parseVCF, load_target_bed
+    
     # Run the permutation test
-    run_permutation_test() 
+    run_permutation_test(parseVCF, load_target_bed) 
