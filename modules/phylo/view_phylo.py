@@ -32,8 +32,7 @@ def setup_tree_style(show_bootstrap=False, circular=False):
     #ts.show_branch_support = show_bootstrap
     ts.show_branch_support = False # set this to False becasue we are customizing the support text (see below)
     ts.mode = 'c' if circular else 'r'  # 'c' for circular, 'r' for rectangular
-    
-    ts.branch_vertical_margin = 5
+    #ts.branch_vertical_margin = 5
     
     return ts
 

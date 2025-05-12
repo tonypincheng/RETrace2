@@ -7,21 +7,15 @@ import argparse
 import os
 import sys
 import time
-from tqdm import tqdm  # Import tqdm for progress bars
+from tqdm import tqdm 
 
 # Set a random seed for reproducibility
-random.seed(42)  # You can change 42 to any integer for a different but reproducible sequence
+random.seed(42)  
 
 def read_group_mapping(file_path):
     """
     Read the samplesheet file and extract sample IDs and group information.
     Expects columns named 'sample_id' and 'group'.
-    
-    Parameters:
-    - file_path: Path to the samplesheet file
-    
-    Returns:
-    - group_dc: Dictionary mapping sample IDs to group/tissue labels
     """
     group_dc = {}
     try:
