@@ -322,7 +322,7 @@ if __name__ == "__main__":
     
     # Print basic information
     group_counts = Counter(group_dc.values())
-    print("\nGroup distribution:")
+    print("\nGroup distribution in the samplesheet:")
     for group, count in group_counts.items():
         print(f"  {group}: {count} samples")
     
@@ -371,18 +371,20 @@ if __name__ == "__main__":
     # Save important statistics to a text file
     with open(stats_file, "w") as f:
         f.write("Permutation Test (Shuffle Group Labels) Statistics:\n")
-        f.write(f"Group distribution: {Counter(group_dc.values())}\n")
-        f.write(f"Number of permutations: {n_perm}\n")
-        f.write(f"Observed Percentage of Same-Tissue Pairs: {observed_percentage:.2f}%\n")
+        f.write("\nGroup distribution in the samplesheet:\n")
+        for group, count in group_counts.items():
+            f.write(f"  {group}: {count} samples\n")
+        f.write(f"\nNumber of permutations: {n_perm}\n")
+        f.write(f"Observed Percentage of Same-Group Pairs: {observed_percentage:.2f}%\n")
         f.write(f"Unique Comparisons Made: {comparisons}\n")
-        f.write(f"Unique Same-Tissue Pairs: {pairs}\n")
+        f.write(f"Unique Same-Group Pairs: {pairs}\n")
         f.write(f"P-value: {p_value}\n")
         f.write(f"Random Percentages - Mean: {np.mean(random_percentages):.2f}%, Median: {np.median(random_percentages):.2f}%, Max: {np.max(random_percentages):.2f}%\n")
     
     print(f"\nStatistics saved to '{stats_file}'")
     
     # Visualize the distribution 
-    plt.figure(figsize=(8, 5), dpi=300)
+    plt.figure(figsize=(10, 5), dpi=300)
 
     bins = np.arange(0, 100 + 5, 5)
     plt.hist(random_percentages, bins=bins, edgecolor='black')
