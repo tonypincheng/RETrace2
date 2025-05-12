@@ -43,6 +43,7 @@ def parse_arguments():
     parser.add_argument("--outgroup", default="Midpoint", 
                        help="Outgroup to use for rooting the phylogenetic tree (default: None)")
     parser.add_argument("--n_processes", type=int, default=4, help="Number of processes for multiprocessing (default: 4)")
+    parser.add_argument("--random_seed", type=int, default=42, help="Random seed for reproducibility (default: 42)")
     
     args = parser.parse_args()
     
@@ -334,6 +335,10 @@ def process_observed():
 def run_permutation_test(parseVCF, load_target_bed):
     start_time = time.time()
     
+    # Set random seed for reproducibility
+    random.seed(args.random_seed)
+    np.random.seed(args.random_seed)
+    
     # Ensure all required directories exist
     for directory in [args.permuted_vcfs_dir, args.permuted_pkls_dir, args.phylo_output_dir]:
         os.makedirs(directory, exist_ok=True)
@@ -342,6 +347,7 @@ def run_permutation_test(parseVCF, load_target_bed):
     print("\n" + "="*80)
     print("STEP 1: SHUFFLING VCF FILES")
     print("="*80)
+    print(f"Using random seed: {args.random_seed}")
     
     # Read the VCF file
     print(f"Reading input VCF file: {args.input_vcf}")
