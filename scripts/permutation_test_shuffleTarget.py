@@ -14,6 +14,7 @@ from Bio import Phylo
 from multiprocessing import Pool
 import matplotlib.pyplot as plt
 import argparse
+import shutil
 
 # ----------------------------
 # Set up argument parser
@@ -44,6 +45,7 @@ def parse_arguments():
                        help="Outgroup to use for rooting the phylogenetic tree (default: None)")
     parser.add_argument("--n_processes", type=int, default=4, help="Number of processes for multiprocessing (default: 4)")
     parser.add_argument("--random_seed", type=int, default=42, help="Random seed for reproducibility (default: 42)")
+    parser.add_argument("--keep_intermediate", action="store_true", help="Keep intermediate files (permuted VCFs and PKLs)")
     
     args = parser.parse_args()
     
@@ -499,6 +501,20 @@ def run_permutation_test(parseVCF, load_target_bed):
     print(f"Step 3 completed in {(end_time - step2_time)/60:.2f} minutes")
     print(f"Total run time: {(end_time - start_time)/60:.2f} minutes")
     print("\n========== Permutation Test Complete ==========\n")
+    
+    # Clean up intermediate files
+    if not args.keep_intermediate:
+        print("\nCleaning up intermediate files...")
+        try:
+            if os.path.exists(args.permuted_vcfs_dir):
+                shutil.rmtree(args.permuted_vcfs_dir)
+            if os.path.exists(args.permuted_pkls_dir):
+                shutil.rmtree(args.permuted_pkls_dir)
+            print("Cleanup complete.")
+        except Exception as e:
+            print(f"Warning: Failed to remove some directories: {e}")
+    
+    print("\n========== All Operations Complete ==========\n")
 
 if __name__ == "__main__":
     # Parse command-line arguments
