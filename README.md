@@ -180,6 +180,7 @@ RETrace2 supports multiple execution environments through Nextflow profiles.
 - more-itertools=10.7.0
 - scikit-bio=0.6.3
 - ete3=3.1.3
+- biopython=1.85
 
 > **Note:** You can also use Docker or Conda (see below) to handle dependencies automatically.
 <br>
