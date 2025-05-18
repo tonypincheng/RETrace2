@@ -7,7 +7,6 @@ RETrace2 is a Nextflow-based bioinformatics pipeline for processing and analyzin
   <img src="assets/workflow.png" width="800" alt="RETrace2 Workflow">
 </p>
 <sup><sub><p align="left"><i>This workflow diagram provides a simplified overview of the RETrace2 pipeline. See the documentation below for detailed steps and modules.</i></p></sub></sup>
-<br>
 
 ## Table of Contents
 - [Features](#features)
