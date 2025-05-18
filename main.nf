@@ -36,7 +36,7 @@ def helpMessage() {
     HipSTR parameters:
       --hipstr_path     Path to HipSTR executable [optional]. If not specified, will use "HipSTR" from PATH
       --min_qual        Minimum quality score per target for HipSTR (default: ${params.min_qual})
-      --min_reads       Minimum number of reads per target across all samples for HipSTR (default: ${params.min_reads}). Note: this is also used in the STATS module to count targets with min coverage.
+      --min_reads       Minimum number of reads per target per sample for HipSTR (default: ${params.min_reads}). Note: this is also used in the STATS module to count targets with min coverage.
       --max_stutter     Maximum stutter ratio for per target for HipSTR (default: ${params.max_stutter}
       --by_chrom        Run HipSTR by chromosome in parallel (default: ${params.by_chrom})
       --snp_vcf         Optional SNP VCF file for HipSTR (default: ${params.snp_vcf ?: "Not used"})
