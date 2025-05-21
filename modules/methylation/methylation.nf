@@ -2,7 +2,6 @@
 
 nextflow.enable.dsl=2
 
-// Process 1: Quality Control
 process METH_FASTQC {
     publishDir "${params.output_dir}/methylation/fastqc", mode: 'copy'
     container "quay.io/biocontainers/fastqc:0.12.1--hdfd78af_0"
@@ -20,7 +19,7 @@ process METH_FASTQC {
     """
 }
 
-// Process 2: MultiQC Report
+
 process METH_MULTIQC {
     publishDir "${params.output_dir}/methylation/fastqc", mode: 'copy'
     container "quay.io/biocontainers/multiqc:1.28--pyhdfd78af_0"
@@ -39,7 +38,7 @@ process METH_MULTIQC {
     """
 }
 
-// Process 3: Read Preprocessing
+
 process METH_TRIM_GALORE {
     publishDir "${params.output_dir}/methylation/trimmed", mode: 'symlink'
     container "community.wave.seqera.io/library/trim-galore:0.6.10--1bf8ca4e1967cd18"
@@ -66,7 +65,7 @@ process METH_TRIM_GALORE {
     """
 }
 
-// Process 4: Run Methylpy
+
 process METHYLPY {
     publishDir "${params.output_dir}/methylation/methylpy", mode: 'copy'
     container "community.wave.seqera.io/library/pip_methylpy:ae44180dc4227f32"
@@ -102,24 +101,37 @@ process METHYLPY {
     """
 }
 
-// Process 5: Analyze methylpy output and generate summary statistics
-// process CALCUALE_PD_MATRIX {
-//     publishDir "${params.output_dir}/methylation/infer_celltype", mode: 'copy'
+// Process : Analyze methylpy output and generate summary statistics
 
-    
-//     input:
-//     path(tsv_files)
-    
-//     output:
 
-    
-//     script:
-//     """
+process CALCUALE_PD_MATRIX {
+    publishDir "${params.output_dir}/methylation/infer_celltype", mode: 'copy'
 
-//     """
-// }
+    input:
+    path allc_files
+    path celltype_ref_files
 
-// Module workflow
+    output:
+    path "${sample_id}_pairwise_dissimilarity.csv", emit: pd_matrix
+    path "${sample_id}_shared_sites.csv", emit: sites_matrix
+    path "${sample_id}_detailed_results.json", emit: detailed_results
+
+    script:
+    """
+    python ${baseDir}/modules/methylation/calculate_pd_matrix.py \
+        --sc_files ${allc_files} \
+        --ref_files ${celltype_ref_files} \
+        --output_dir . \
+        --min_reads ${params.min_reads_per_site} \
+        --min_sites ${params.min_shared_sites} \
+        --n_processes ${task.cpus} \
+        ${params.all_cytosines ? '--all_cytosines' : ''}
+    """
+}
+
+// Create channel for reference files
+celltype_ref_ch = Channel.fromPath(params.celltype_ref)
+
 workflow METHYLATION {
     take:
     reads
@@ -137,9 +149,12 @@ workflow METHYLATION {
     // Run methylpy
     METHYLPY(METH_TRIM_GALORE.out.trimmed_reads)
     
-    // // Analyze methylpy output and stats
-    // stats = ANALYZE_METHYLPY_STATS(methylpy_results.log_file.collect(), methylpy_results.results)
+    // Calculate PD matrix
+    CALCUALE_PD_MATRIX(METHYLPY.out.allc.map { tuple -> tuple[1] }.collect(), celltype_ref_ch.collect())
     
     emit:
     allc = METHYLPY.out.allc
+    pd_matrix = CALCUALE_PD_MATRIX.out.pd_matrix
+    sites_matrix = CALCUALE_PD_MATRIX.out.sites_matrix
+    detailed_results = CALCUALE_PD_MATRIX.out.detailed_results
 }

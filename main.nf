@@ -55,8 +55,12 @@ def helpMessage() {
       --ground_truth    Path to ground truth data (default: ${params.ground_truth})
       
       --run_methylation Run methylation analysis (default: ${params.run_methylation})
-      --methylpy_ref    Path prefix for methylpy reference files [optional]. If not specified, will use ${params.genome_base}/${params.genome}/methylpl-ref/${params.genome}
-      
+      --methylpy_ref    Path prefix for methylpy reference files [optional]. If not specified, will use ${params.genome_base}/${params.genome}/methylpl-ref/${params.genome}      
+      --min_reads_per_site Minimum number of reads required per cytosine site (default: 1)
+      --min_shared_sites Minimum number of shared sites required for comparison (default: 300)
+      --all_cytosines Use all methylation contexts, not just CpG sites (default: false)
+      --celltype_ref Path to reference cell type ALLC format files (required for cell type inference)
+
       --help            Display this help message
     """
 }
