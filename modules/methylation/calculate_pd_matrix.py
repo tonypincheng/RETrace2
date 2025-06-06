@@ -8,6 +8,7 @@ from tqdm import tqdm
 import gzip
 import multiprocessing
 from functools import partial
+import json
 
 def read_allc(file_path, cpg_only=True, has_header=False):
     """
@@ -124,56 +125,57 @@ def calculate_pairwise_dissimilarity(sc_data, ref_data, min_reads=1, min_sites=3
     
     return avg_dissimilarity, len(filtered_sites), dissimilarities
 
-def process_single_cell(sc_file, sc_name, ref_files, ref_names, min_reads=1, min_sites=10, cpg_only=True):
+def process_single_comparison(sc_file, sc_name, ref_file, ref_name, min_reads=1, min_sites=10, cpg_only=True):
     """
-    Process a single cell against all reference files.
-    Returns a dictionary with results for this cell.
+    Process a single cell against a single reference file.
+    This creates many small tasks that can run in parallel without memory issues.
     """
-    results = {
-        'sc_name': sc_name,
-        'pd_scores': {},
-        'shared_sites': {},
-        'detailed': {}
-    }
-    
+    # Load single cell data
     sc_data = read_allc(sc_file, cpg_only)
-    
     if not sc_data:
-        print(f"Skipping empty single cell data from {sc_file}")
-        return results
+        return {
+            'sc_name': sc_name,
+            'ref_name': ref_name,
+            'pd_score': np.nan,
+            'shared_sites': 0,
+            'detailed': []
+        }
     
-    # Process against each reference
-    for j, ref_file in enumerate(ref_files):
-        ref_name = ref_names[j]
-        ref_data = read_allc(ref_file, cpg_only)
-        
-        if not ref_data:
-            print(f"Skipping empty reference data from {ref_file}")
-            results['pd_scores'][ref_name] = np.nan
-            results['shared_sites'][ref_name] = 0
-            continue
-        
-        # Calculate pairwise dissimilarity
-        pd_score, shared_sites, dissimilarities = calculate_pairwise_dissimilarity(
-            sc_data, ref_data, min_reads, min_sites)
-        
-        # Store results
-        results['pd_scores'][ref_name] = pd_score
-        results['shared_sites'][ref_name] = shared_sites
-        results['detailed'][ref_name] = dissimilarities
-        
-        # Print detailed results
-        print(f"  {sc_name} vs {ref_name}: PD={pd_score:.2f}, Shared sites={shared_sites}")
+    # Load single reference
+    ref_data = read_allc(ref_file, cpg_only)
+    if not ref_data:
+        return {
+            'sc_name': sc_name,
+            'ref_name': ref_name,
+            'pd_score': np.nan,
+            'shared_sites': 0,
+            'detailed': []
+        }
     
-    return results
+    # Calculate pairwise dissimilarity
+    pd_score, shared_sites, dissimilarities = calculate_pairwise_dissimilarity(
+        sc_data, ref_data, min_reads, min_sites)
+    
+    # Print progress
+    print(f"  {sc_name} vs {ref_name}: PD={pd_score:.2f}, Shared sites={shared_sites}")
+    
+    return {
+        'sc_name': sc_name,
+        'ref_name': ref_name,
+        'pd_score': pd_score,
+        'shared_sites': shared_sites,
+        'detailed': dissimilarities
+    }
 
 def process_files(sc_files, ref_files, min_reads=1, min_sites=300, n_processes=1, cpg_only=True):
     """
-    Process all single-cell files against all reference files using multiprocessing.
+    Process all single-cell files against all reference files using task-per-comparison.
     Returns a DataFrame with dissimilarity scores and a dictionary with detailed results.
     """
+    # Use the requested number of processes
+    n_processes = min(32, n_processes)
     
-    # Extract cell and reference names (Note: need to be specified manually according to the file names)
+    # Extract names
     sc_names = [os.path.basename(f).replace('allc_', '').replace('.tsv.gz', '') for f in sc_files]
     ref_names = [os.path.basename(f).split('.')[0] for f in ref_files]
     
@@ -182,33 +184,43 @@ def process_files(sc_files, ref_files, min_reads=1, min_sites=300, n_processes=1
     sites_matrix = pd.DataFrame(index=sc_names, columns=ref_names, dtype=int)
     detailed_results = {}
     
-    # Create a partial function with fixed parameters
-    process_func = partial(process_single_cell, 
-                          ref_files=ref_files, 
-                          ref_names=ref_names,
+    # Create tasks: one task per (single_cell, reference) comparison
+    tasks = []
+    for sc_file, sc_name in zip(sc_files, sc_names):
+        for ref_file, ref_name in zip(ref_files, ref_names):
+            tasks.append((sc_file, sc_name, ref_file, ref_name))
+    
+    print(f"Processing {len(sc_files)} single cells against {len(ref_files)} references...")
+    print(f"Total comparisons: {len(tasks)} (using {n_processes} processes)")
+    print(f"Using {'CpG sites only' if cpg_only else 'all methylation contexts'}")
+    
+    # Create partial function
+    process_func = partial(process_single_comparison, 
                           min_reads=min_reads, 
                           min_sites=min_sites,
                           cpg_only=cpg_only)
     
-    # Process each single cell in parallel
-    print(f"Processing single cells using {n_processes} processes...")
-    print(f"Using {'CpG sites only' if cpg_only else 'all methylation contexts'}")
-    
-    with multiprocessing.Pool(processes=n_processes) as pool:
+    # Process all comparisons in parallel
+    with multiprocessing.Pool(processes=n_processes, maxtasksperchild=10) as pool:
         results = list(tqdm(
-            pool.starmap(process_func, zip(sc_files, sc_names)), 
-            total=len(sc_files),
-            desc="Processing single cells"
+            pool.starmap(process_func, tasks),
+            total=len(tasks),
+            desc="Processing comparisons"
         ))
     
     # Consolidate results
     for result in results:
         sc_name = result['sc_name']
-        detailed_results[sc_name] = result['detailed']
+        ref_name = result['ref_name']
         
-        for ref_name in ref_names:
-            pd_matrix.loc[sc_name, ref_name] = result['pd_scores'].get(ref_name, np.nan)
-            sites_matrix.loc[sc_name, ref_name] = result['shared_sites'].get(ref_name, 0)
+        # Initialize detailed results for this single cell
+        if sc_name not in detailed_results:
+            detailed_results[sc_name] = {}
+        
+        # Store results
+        pd_matrix.loc[sc_name, ref_name] = result['pd_score']
+        sites_matrix.loc[sc_name, ref_name] = result['shared_sites']
+        detailed_results[sc_name][ref_name] = result['detailed']
     
     return pd_matrix, sites_matrix, detailed_results
 
@@ -257,12 +269,10 @@ def calculate_pairwise_dissimilarity_matrix(sc_files, ref_files, output_dir='.',
     sc_files = expand_file_patterns(sc_files)
     ref_files = expand_file_patterns(ref_files)
     
-    # Prepare output file prefix based on methylation context
-    context_label = "cpg" if cpg_only else "all"
-    
     # Define output files
-    pd_matrix_file = os.path.join(output_dir, f'{context_label}_pairwise_dissimilarity.csv')
-    sites_matrix_file = os.path.join(output_dir, f'{context_label}_shared_sites.csv')
+    pd_matrix_file = os.path.join(output_dir, 'pairwise_dissimilarity_matrix.csv')
+    sites_matrix_file = os.path.join(output_dir, 'shared_sites_matrix.csv')
+    detailed_results_file = os.path.join(output_dir, 'detailed_results.json')
     
     print(f"Found {len(sc_files)} single-cell files")
     print(f"Found {len(ref_files)} reference files")
@@ -280,8 +290,13 @@ def calculate_pairwise_dissimilarity_matrix(sc_files, ref_files, output_dir='.',
     pd_matrix.to_csv(pd_matrix_file)
     sites_matrix.to_csv(sites_matrix_file)
     
+    # Save detailed results
+    with open(detailed_results_file, 'w') as f:
+        json.dump(detailed_results, f)
+    
     print(f"Pairwise dissimilarity matrix saved to {pd_matrix_file}")
     print(f"Shared sites matrix saved to {sites_matrix_file}")
+    print(f"Detailed results saved to {detailed_results_file}")
     
     return pd_matrix, sites_matrix
 
@@ -298,7 +313,7 @@ if __name__ == "__main__":
     parser.add_argument('--min_sites', type=int, default=300, 
                        help='Minimum number of shared sites required')
     parser.add_argument('--n_processes', type=int, default=1, 
-                       help='Number of processes to use for parallel processing. Default: 1')
+                       help='Number of processes to use for parallel processing. Default: 1, Maximum: 32')
     parser.add_argument('--all_cytosines', action='store_true', 
                        help='Use all methylation contexts (not just CpG sites)')
     

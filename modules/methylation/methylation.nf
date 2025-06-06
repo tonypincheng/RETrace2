@@ -104,7 +104,7 @@ process METHYLPY {
 // Process : Analyze methylpy output and generate summary statistics
 
 
-process CALCUALE_PD_MATRIX {
+process CALCULATE_PD_MATRIX {
     publishDir "${params.output_dir}/methylation/infer_celltype", mode: 'copy'
 
     input:
@@ -112,9 +112,9 @@ process CALCUALE_PD_MATRIX {
     path celltype_ref_files
 
     output:
-    path "${sample_id}_pairwise_dissimilarity.csv", emit: pd_matrix
-    path "${sample_id}_shared_sites.csv", emit: sites_matrix
-    path "${sample_id}_detailed_results.json", emit: detailed_results
+    path "pairwise_dissimilarity_matrix.csv", emit: pd_matrix
+    path "shared_sites_matrix.csv", emit: sites_matrix
+    path "detailed_results.json", emit: detailed_results
 
     script:
     """
@@ -130,7 +130,14 @@ process CALCUALE_PD_MATRIX {
 }
 
 // Create channel for reference files
-celltype_ref_ch = Channel.fromPath(params.celltype_ref)
+if (params.celltype_ref_dir) {
+    // Specify directory + pattern
+    celltype_ref_path = "${params.celltype_ref_dir}/${params.celltype_ref_pattern}"
+    celltype_ref_ch = Channel.fromPath(celltype_ref_path)
+} else {
+    // No reference files specified
+    celltype_ref_ch = Channel.empty()
+}
 
 workflow METHYLATION {
     take:
@@ -150,11 +157,11 @@ workflow METHYLATION {
     METHYLPY(METH_TRIM_GALORE.out.trimmed_reads)
     
     // Calculate PD matrix
-    CALCUALE_PD_MATRIX(METHYLPY.out.allc.map { tuple -> tuple[1] }.collect(), celltype_ref_ch.collect())
+    CALCULATE_PD_MATRIX(METHYLPY.out.allc.map { tuple -> tuple[1] }.collect(), celltype_ref_ch.collect())
     
     emit:
     allc = METHYLPY.out.allc
-    pd_matrix = CALCUALE_PD_MATRIX.out.pd_matrix
-    sites_matrix = CALCUALE_PD_MATRIX.out.sites_matrix
-    detailed_results = CALCUALE_PD_MATRIX.out.detailed_results
+    pd_matrix = CALCULATE_PD_MATRIX.out.pd_matrix
+    sites_matrix = CALCULATE_PD_MATRIX.out.sites_matrix
+    detailed_results = CALCULATE_PD_MATRIX.out.detailed_results
 }
