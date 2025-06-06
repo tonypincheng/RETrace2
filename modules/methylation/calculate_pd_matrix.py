@@ -167,17 +167,11 @@ def process_single_cell(sc_file, sc_name, ref_files, ref_names, min_reads=1, min
     
     return results
 
-def process_files(sc_files, ref_files, min_reads=1, min_sites=300, n_processes=None, cpg_only=True):
+def process_files(sc_files, ref_files, min_reads=1, min_sites=300, n_processes=1, cpg_only=True):
     """
     Process all single-cell files against all reference files using multiprocessing.
     Returns a DataFrame with dissimilarity scores and a dictionary with detailed results.
     """
-    # Use up to 8 processes by default, or whatever the user specifies
-    if n_processes is None:
-        n_processes = min(8, max(1, multiprocessing.cpu_count() // 2))
-    else:
-        # Cap the maximum number of processes to avoid system overload
-        n_processes = min(16, n_processes)
     
     # Extract cell and reference names (Note: need to be specified manually according to the file names)
     sc_names = [os.path.basename(f).replace('allc_', '').replace('.tsv.gz', '') for f in sc_files]
@@ -303,8 +297,8 @@ if __name__ == "__main__":
                        help='Minimum number of reads for a methylation site')
     parser.add_argument('--min_sites', type=int, default=300, 
                        help='Minimum number of shared sites required')
-    parser.add_argument('--n_processes', type=int, default=None, 
-                       help='Number of processes to use for parallel processing. Default: half of available CPU cores')
+    parser.add_argument('--n_processes', type=int, default=1, 
+                       help='Number of processes to use for parallel processing. Default: 1')
     parser.add_argument('--all_cytosines', action='store_true', 
                        help='Use all methylation contexts (not just CpG sites)')
     
