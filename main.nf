@@ -59,7 +59,8 @@ def helpMessage() {
       --min_reads_per_site Minimum number of reads required per cytosine site (default: 1)
       --min_shared_sites Minimum number of shared sites required for comparison (default: 300)
       --all_cytosines Use all methylation contexts, not just CpG sites (default: false)
-      --celltype_ref Path to reference cell type ALLC format files (required for cell type inference)
+      --celltype_ref_dir Directory containing reference cell type files (required for cell type inference)
+      --celltype_ref_pattern Pattern to match files in celltype_ref_dir (default: *.tsv.gz)
 
       --help            Display this help message
     """

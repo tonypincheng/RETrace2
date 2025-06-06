@@ -169,7 +169,7 @@ For a full list of parameters, run `nextflow run main.nf --help`.
 RETrace2 supports multiple execution environments through Nextflow profiles.
 
 ### Prerequisites
-- nextflow=24.10.6
+- nextflow=25.04.3
 - fastqc=0.12.1
 - multiqc=1.28
 - python=3.9
