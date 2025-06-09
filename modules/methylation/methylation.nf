@@ -136,6 +136,7 @@ if (params.celltype_ref_dir) {
     celltype_ref_ch = Channel.fromPath(celltype_ref_path)
 } else {
     // No reference files specified
+    log.info "No celltype reference directory specified (celltype_ref_dir). Cell type inference will be skipped."
     celltype_ref_ch = Channel.empty()
 }
 
