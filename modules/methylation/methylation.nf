@@ -114,7 +114,6 @@ process CALCULATE_PD_MATRIX {
     output:
     path "pairwise_dissimilarity_matrix.csv", emit: pd_matrix
     path "shared_sites_matrix.csv", emit: sites_matrix
-    path "detailed_results.json", emit: detailed_results
 
     script:
     """
@@ -164,5 +163,4 @@ workflow METHYLATION {
     allc = METHYLPY.out.allc
     pd_matrix = CALCULATE_PD_MATRIX.out.pd_matrix
     sites_matrix = CALCULATE_PD_MATRIX.out.sites_matrix
-    detailed_results = CALCULATE_PD_MATRIX.out.detailed_results
 }

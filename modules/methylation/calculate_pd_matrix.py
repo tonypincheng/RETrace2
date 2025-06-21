@@ -137,8 +137,7 @@ def process_single_comparison(sc_file, sc_name, ref_file, ref_name, min_reads=1,
             'sc_name': sc_name,
             'ref_name': ref_name,
             'pd_score': np.nan,
-            'shared_sites': 0,
-            'detailed': []
+            'shared_sites': 0
         }
     
     # Load single reference
@@ -148,8 +147,7 @@ def process_single_comparison(sc_file, sc_name, ref_file, ref_name, min_reads=1,
             'sc_name': sc_name,
             'ref_name': ref_name,
             'pd_score': np.nan,
-            'shared_sites': 0,
-            'detailed': []
+            'shared_sites': 0
         }
     
     # Calculate pairwise dissimilarity
@@ -163,8 +161,7 @@ def process_single_comparison(sc_file, sc_name, ref_file, ref_name, min_reads=1,
         'sc_name': sc_name,
         'ref_name': ref_name,
         'pd_score': pd_score,
-        'shared_sites': shared_sites,
-        'detailed': dissimilarities
+        'shared_sites': shared_sites
     }
 
 def process_files(sc_files, ref_files, min_reads=1, min_sites=300, n_processes=1, cpg_only=True):
@@ -182,7 +179,6 @@ def process_files(sc_files, ref_files, min_reads=1, min_sites=300, n_processes=1
     # Initialize results
     pd_matrix = pd.DataFrame(index=sc_names, columns=ref_names, dtype=float)
     sites_matrix = pd.DataFrame(index=sc_names, columns=ref_names, dtype=int)
-    detailed_results = {}
     
     # Create tasks: one task per (single_cell, reference) comparison
     tasks = []
@@ -213,16 +209,11 @@ def process_files(sc_files, ref_files, min_reads=1, min_sites=300, n_processes=1
         sc_name = result['sc_name']
         ref_name = result['ref_name']
         
-        # Initialize detailed results for this single cell
-        if sc_name not in detailed_results:
-            detailed_results[sc_name] = {}
-        
         # Store results
         pd_matrix.loc[sc_name, ref_name] = result['pd_score']
         sites_matrix.loc[sc_name, ref_name] = result['shared_sites']
-        detailed_results[sc_name][ref_name] = result['detailed']
     
-    return pd_matrix, sites_matrix, detailed_results
+    return pd_matrix, sites_matrix
 
 def expand_file_patterns(file_patterns):
     """
@@ -272,7 +263,6 @@ def calculate_pairwise_dissimilarity_matrix(sc_files, ref_files, output_dir='.',
     # Define output files
     pd_matrix_file = os.path.join(output_dir, 'pairwise_dissimilarity_matrix.csv')
     sites_matrix_file = os.path.join(output_dir, 'shared_sites_matrix.csv')
-    detailed_results_file = os.path.join(output_dir, 'detailed_results.json')
     
     print(f"Found {len(sc_files)} single-cell files")
     print(f"Found {len(ref_files)} reference files")
@@ -283,20 +273,15 @@ def calculate_pairwise_dissimilarity_matrix(sc_files, ref_files, output_dir='.',
     
     # Process files to calculate pairwise dissimilarity
     print("Calculating pairwise dissimilarity...")
-    pd_matrix, sites_matrix, detailed_results = process_files(
+    pd_matrix, sites_matrix = process_files(
         sc_files, ref_files, min_reads, min_sites, n_processes, cpg_only)
     
     # Save the raw PD matrix
     pd_matrix.to_csv(pd_matrix_file)
     sites_matrix.to_csv(sites_matrix_file)
     
-    # Save detailed results
-    with open(detailed_results_file, 'w') as f:
-        json.dump(detailed_results, f)
-    
     print(f"Pairwise dissimilarity matrix saved to {pd_matrix_file}")
     print(f"Shared sites matrix saved to {sites_matrix_file}")
-    print(f"Detailed results saved to {detailed_results_file}")
     
     return pd_matrix, sites_matrix
 
