@@ -17,25 +17,78 @@ import json
 import psutil
 import resource
 import gc
+import sys
 
-def get_optimal_process_count(n_processes=None):
-    """Intelligently determine optimal process count."""
-    if n_processes is not None and n_processes <= 8:
+def get_memory_usage_mb():
+    """Get current memory usage in MB."""
+    process = psutil.Process(os.getpid())
+    return process.memory_info().rss / 1024 / 1024
+
+def estimate_reference_memory(ref_files, sample_size=3):
+    """Estimate memory usage of reference data by sampling."""
+    if not ref_files:
+        return 0
+    
+    print("Estimating reference data memory usage...")
+    sample_files = ref_files[:min(sample_size, len(ref_files))]
+    
+    total_estimated_mb = 0
+    for ref_file in sample_files:
+        initial_mem = get_memory_usage_mb()
+        try:
+            ref_df = read_allc_fast(ref_file, cpg_only=True)
+            if not ref_df.empty:
+                current_mem = get_memory_usage_mb()
+                file_mem = current_mem - initial_mem
+                total_estimated_mb += file_mem
+                del ref_df
+                gc.collect()
+        except Exception as e:
+            print(f"Warning: Could not estimate memory for {ref_file}: {e}")
+            # Use a conservative estimate
+            total_estimated_mb += 50  # 50MB per file as fallback
+    
+    # Extrapolate to all files
+    avg_mem_per_file = total_estimated_mb / len(sample_files)
+    total_estimated_mb = avg_mem_per_file * len(ref_files)
+    
+    print(f"Estimated reference data memory: {total_estimated_mb:.1f} MB")
+    return total_estimated_mb
+
+def get_optimal_process_count(n_processes=None, ref_memory_mb=0):
+    """Intelligently determine optimal process count with memory considerations."""
+    if n_processes is not None and n_processes <= 4:
         return n_processes
     
     cpu_count = multiprocessing.cpu_count()
     memory_gb = psutil.virtual_memory().total / (1024**3)
+    available_memory_gb = psutil.virtual_memory().available / (1024**3)
     
-    # More conservative for batched approach
-    memory_limited = max(1, int(memory_gb * 0.6))  # Use 60% of RAM
-    cpu_limited = max(1, min(cpu_count - 1, 12))   # Max 12 processes
+    print(f"System: {cpu_count} CPUs, {memory_gb:.1f}GB RAM, {available_memory_gb:.1f}GB available")
     
-    optimal = min(memory_limited, cpu_limited, 12)
+    # Conservative memory calculation
+    # Each process will hold a copy of reference data plus single cell data
+    ref_memory_gb = ref_memory_mb / 1024
+    memory_per_process_gb = ref_memory_gb + 0.5  # 0.5GB buffer per process
+    
+    # Use only 50% of available memory to be very conservative
+    usable_memory_gb = available_memory_gb * 0.5
+    memory_limited = max(1, int(usable_memory_gb / memory_per_process_gb))
+    
+    # Conservative CPU limit - especially important for large datasets
+    if ref_memory_gb > 2:  # If references are large
+        cpu_limited = max(1, min(cpu_count // 2, 10))  # Conservative
+    else:
+        cpu_limited = max(1, min(cpu_count - 1, 12))   # Moderately conservative
+    
+    optimal = min(memory_limited, cpu_limited)
     
     if n_processes is not None:
         optimal = min(optimal, n_processes)
     
-    print(f"System: {cpu_count} CPUs, {memory_gb:.1f}GB RAM")
+    print(f"Memory per process: {memory_per_process_gb:.1f}GB")
+    print(f"Memory-limited processes: {memory_limited}")
+    print(f"CPU-limited processes: {cpu_limited}")
     print(f"Optimal processes: {optimal}")
     
     return optimal
@@ -96,22 +149,40 @@ def calculate_dissimilarity_fast(sc_df, ref_df, min_reads=1, min_sites=300):
     return np.mean(dissimilarities), len(merged)
 
 def preload_references(ref_files, cpg_only=True):
-    """Preload all reference data to minimize I/O."""
+    """Preload all reference data to minimize I/O with memory monitoring."""
     print("Preloading reference data...")
     ref_data = {}
+    initial_memory = get_memory_usage_mb()
     
-    for ref_file in tqdm(ref_files, desc="Loading references"):
+    for i, ref_file in enumerate(tqdm(ref_files, desc="Loading references")):
         ref_name = os.path.basename(ref_file).split('.')[0]
         ref_df = read_allc_fast(ref_file, cpg_only)
         if not ref_df.empty:
             ref_data[ref_name] = ref_df
+        
+        # Monitor memory every 10 files
+        if (i + 1) % 10 == 0:
+            current_memory = get_memory_usage_mb()
+            memory_used = current_memory - initial_memory
+            print(f"  Loaded {i+1}/{len(ref_files)} refs, using {memory_used:.1f} MB")
+            
+            # Check if we're approaching memory limits
+            available_memory_gb = psutil.virtual_memory().available / (1024**3)
+            if available_memory_gb < 2:  # Less than 2GB available
+                print(f"Warning: Low memory detected ({available_memory_gb:.1f}GB available)")
     
-    print(f"Preloaded {len(ref_data)} references")
+    final_memory = get_memory_usage_mb()
+    total_memory_used = final_memory - initial_memory
+    print(f"Preloaded {len(ref_data)} references using {total_memory_used:.1f} MB")
+    
     return ref_data
 
 def process_single_cell_batch(sc_file, sc_name, ref_data_dict, min_reads=1, min_sites=300, cpg_only=True):
-    """Process one single cell against all preloaded references."""
+    """Process one single cell against all preloaded references with memory monitoring."""
     try:
+        # Monitor memory at start
+        initial_mem = get_memory_usage_mb()
+        
         # Load single cell once
         sc_data = read_allc_fast(sc_file, cpg_only)
         if sc_data.empty:
@@ -122,10 +193,15 @@ def process_single_cell_batch(sc_file, sc_name, ref_data_dict, min_reads=1, min_
             pd_score, shared_sites = calculate_dissimilarity_fast(
                 sc_data, ref_data, min_reads, min_sites)
             results.append((sc_name, ref_name, pd_score, shared_sites))
-            print(f"  {sc_name} vs {ref_name}: PD={pd_score:.2f}, sites={shared_sites}")
         
+        # Clean up and report memory usage
         del sc_data
         gc.collect()
+        
+        final_mem = get_memory_usage_mb()
+        if final_mem - initial_mem > 100:  # If process used more than 100MB
+            print(f"  {sc_name}: memory used {final_mem - initial_mem:.1f} MB")
+        
         return results
         
     except Exception as e:
@@ -133,8 +209,24 @@ def process_single_cell_batch(sc_file, sc_name, ref_data_dict, min_reads=1, min_
         return [(sc_name, ref_name, np.nan, 0) for ref_name in ref_data_dict.keys()]
 
 def process_files_batched(sc_files, ref_files, min_reads=1, min_sites=300, n_processes=None, cpg_only=True):
-    """Batched processing with preloaded references."""
-    n_processes = get_optimal_process_count(n_processes)
+    """Batched processing with preloaded references and memory optimization."""
+    # Estimate memory requirements first
+    ref_memory_mb = estimate_reference_memory(ref_files)
+    
+    # Get optimal process count based on memory constraints
+    n_processes = get_optimal_process_count(n_processes, ref_memory_mb)
+    
+    # Check if we have enough memory for this approach
+    available_memory_gb = psutil.virtual_memory().available / (1024**3)
+    required_memory_gb = (ref_memory_mb / 1024) * n_processes * 1.5  # 1.5x safety factor
+    
+    if required_memory_gb > available_memory_gb:
+        print(f"WARNING: Estimated memory requirement ({required_memory_gb:.1f}GB) exceeds available memory ({available_memory_gb:.1f}GB)")
+        print("Consider reducing the number of processes or using a machine with more memory")
+        
+        # Force very conservative settings
+        n_processes = max(1, min(n_processes, int(available_memory_gb / (ref_memory_mb / 1024))))
+        print(f"Reducing processes to {n_processes} to fit in available memory")
     
     # Preload all references in main process
     ref_data_dict = preload_references(ref_files, cpg_only)
@@ -157,13 +249,23 @@ def process_files_batched(sc_files, ref_files, min_reads=1, min_sites=300, n_pro
     tasks = [(sc_file, sc_name, ref_data_dict, min_reads, min_sites, cpg_only) 
              for sc_file, sc_name in zip(sc_files, sc_names)]
     
-    # Process with conservative settings
-    with multiprocessing.Pool(processes=n_processes, maxtasksperchild=1) as pool:
-        all_results = list(tqdm(
-            pool.starmap(process_single_cell_batch, tasks),
-            total=len(tasks),
-            desc="Processing single cells"
-        ))
+    # Process with conservative settings and memory monitoring
+    try:
+        with multiprocessing.Pool(processes=n_processes, maxtasksperchild=1) as pool:
+            all_results = list(tqdm(
+                pool.starmap(process_single_cell_batch, tasks),
+                total=len(tasks),
+                desc="Processing single cells"
+            ))
+    except Exception as e:
+        print(f"Error during multiprocessing: {e}")
+        print("Falling back to sequential processing...")
+        
+        # Fallback to sequential processing
+        all_results = []
+        for task in tqdm(tasks, desc="Processing single cells (sequential)"):
+            result = process_single_cell_batch(*task)
+            all_results.append(result)
     
     # Consolidate results
     for cell_results in all_results:
@@ -183,15 +285,86 @@ def expand_file_patterns(file_patterns):
             expanded_files.append(pattern)
     return sorted(expanded_files)
 
+def process_single_cell_streaming(sc_file, sc_name, ref_files, min_reads=1, min_sites=300, cpg_only=True):
+    """Process one single cell against references without preloading all references."""
+    try:
+        # Load single cell once
+        sc_data = read_allc_fast(sc_file, cpg_only)
+        if sc_data.empty:
+            return [(sc_name, os.path.basename(ref_file).split('.')[0], np.nan, 0) for ref_file in ref_files]
+        
+        results = []
+        for ref_file in ref_files:
+            ref_name = os.path.basename(ref_file).split('.')[0]
+            ref_data = read_allc_fast(ref_file, cpg_only)
+            
+            if ref_data.empty:
+                results.append((sc_name, ref_name, np.nan, 0))
+            else:
+                pd_score, shared_sites = calculate_dissimilarity_fast(
+                    sc_data, ref_data, min_reads, min_sites)
+                results.append((sc_name, ref_name, pd_score, shared_sites))
+            
+            # Clean up reference data immediately
+            del ref_data
+            gc.collect()
+        
+        del sc_data
+        gc.collect()
+        return results
+        
+    except Exception as e:
+        print(f"Error processing {sc_name}: {e}")
+        return [(sc_name, os.path.basename(ref_file).split('.')[0], np.nan, 0) for ref_file in ref_files]
+
+def process_files_streaming(sc_files, ref_files, min_reads=1, min_sites=300, n_processes=None, cpg_only=True):
+    """Memory-efficient streaming approach that doesn't preload references."""
+    n_processes = get_optimal_process_count(n_processes, 0)  # No reference memory preloaded
+    
+    # Extract names
+    sc_names = [os.path.basename(f).replace('allc_', '').replace('.tsv.gz', '') for f in sc_files]
+    ref_names = [os.path.basename(f).split('.')[0] for f in ref_files]
+    
+    # Initialize results
+    pd_matrix = pd.DataFrame(index=sc_names, columns=ref_names, dtype=float)
+    sites_matrix = pd.DataFrame(index=sc_names, columns=ref_names, dtype=int)
+    
+    print(f"Processing {len(sc_files)} single cells against {len(ref_names)} references (streaming mode)...")
+    print(f"Using {n_processes} processes")
+    
+    # Create tasks: one per single cell
+    tasks = [(sc_file, sc_name, ref_files, min_reads, min_sites, cpg_only) 
+             for sc_file, sc_name in zip(sc_files, sc_names)]
+    
+    # Process with multiprocessing
+    with multiprocessing.Pool(processes=n_processes, maxtasksperchild=1) as pool:
+        all_results = list(tqdm(
+            pool.starmap(process_single_cell_streaming, tasks),
+            total=len(tasks),
+            desc="Processing single cells (streaming)"
+        ))
+    
+    # Consolidate results
+    for cell_results in all_results:
+        for sc_name, ref_name, pd_score, shared_sites in cell_results:
+            pd_matrix.loc[sc_name, ref_name] = pd_score
+            sites_matrix.loc[sc_name, ref_name] = shared_sites
+    
+    return pd_matrix, sites_matrix
+
 def calculate_pairwise_dissimilarity_matrix_batched(sc_files, ref_files, output_dir='.', 
                                                    min_reads=1, min_sites=300, 
-                                                   n_processes=None, cpg_only=True):
-    """Main function for batched processing."""
+                                                   n_processes=None, cpg_only=True,
+                                                   force_streaming=False, max_ref_memory_gb=8):
+    """Main function for batched processing with automatic memory management."""
     os.makedirs(output_dir, exist_ok=True)
     
     sc_files = expand_file_patterns(sc_files)
     ref_files = expand_file_patterns(ref_files)
     
+    print("="*60)
+    print("RETrace2 Pairwise Dissimilarity Matrix Calculator")
+    print("="*60)
     print(f"Found {len(sc_files)} single-cell files")
     print(f"Found {len(ref_files)} reference files")
     
@@ -199,9 +372,29 @@ def calculate_pairwise_dissimilarity_matrix_batched(sc_files, ref_files, output_
         print("Error: No input files found")
         return None, None
     
-    # Process files
-    pd_matrix, sites_matrix = process_files_batched(
-        sc_files, ref_files, min_reads, min_sites, n_processes, cpg_only)
+    print("\nMEMORY OPTIMIZATION:")
+    print("- BATCHED MODE: Preloads all references for maximum speed")
+    print("- STREAMING MODE: Loads references on-demand to save memory")
+    
+    # Decide processing approach based on memory constraints
+    if force_streaming:
+        print(f"\n→ Using STREAMING MODE (forced via --force_streaming)")
+        pd_matrix, sites_matrix = process_files_streaming(
+            sc_files, ref_files, min_reads, min_sites, n_processes, cpg_only)
+    else:
+        # Estimate memory and decide approach
+        ref_memory_mb = estimate_reference_memory(ref_files)
+        ref_memory_gb = ref_memory_mb / 1024
+        
+        if ref_memory_gb > max_ref_memory_gb:
+            print(f"\n→ Reference data ({ref_memory_gb:.1f}GB) exceeds limit ({max_ref_memory_gb}GB)")
+            print("→ Automatically switching to STREAMING MODE to avoid memory issues")
+            pd_matrix, sites_matrix = process_files_streaming(
+                sc_files, ref_files, min_reads, min_sites, n_processes, cpg_only)
+        else:
+            print(f"\n→ Using BATCHED MODE with preloaded references ({ref_memory_gb:.1f}GB)")
+            pd_matrix, sites_matrix = process_files_batched(
+                sc_files, ref_files, min_reads, min_sites, n_processes, cpg_only)
     
     if pd_matrix is None:
         return None, None
@@ -217,7 +410,18 @@ def calculate_pairwise_dissimilarity_matrix_batched(sc_files, ref_files, output_
     return pd_matrix, sites_matrix
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='Batched pairwise dissimilarity matrix calculation with memory optimization')
+    parser = argparse.ArgumentParser(
+        description='Batched pairwise dissimilarity matrix calculation with automatic memory optimization.\n\n'
+                   'This script supports two processing modes:\n'
+                   '1. BATCHED MODE (default): Preloads all reference data for maximum speed\n'
+                   '2. STREAMING MODE: Loads references on-demand to minimize memory usage\n\n'
+                   'The script automatically switches to streaming mode when:\n'
+                   '- Reference data exceeds --max_ref_memory_gb limit\n'
+                   '- Memory estimation indicates insufficient RAM\n'
+                   '- --force_streaming flag is used\n\n'
+                   'Streaming mode is slower but handles very large reference datasets that cannot fit in memory.',
+        formatter_class=argparse.RawDescriptionHelpFormatter
+    )
     parser.add_argument('--sc_files', type=str, nargs='+', required=True,
                        help='List of single-cell ALLC files or patterns (e.g., "*.allc.tsv.gz")')
     parser.add_argument('--ref_files', type=str, nargs='+', required=True,
@@ -229,14 +433,19 @@ if __name__ == "__main__":
     parser.add_argument('--min_sites', type=int, default=300,
                        help='Minimum number of shared sites required')
     parser.add_argument('--n_processes', type=int, default=None,
-                       help='Number of processes to use for parallel processing. If None, automatically determines optimal count based on system resources (capped at 12 processes)')
+                       help='Number of processes to use for parallel processing. If None, automatically determines optimal count based on system resources')
     parser.add_argument('--all_cytosines', action='store_true',
                        help='Use all methylation contexts (not just CpG sites). Default: CpG sites only')
+    parser.add_argument('--force_streaming', action='store_true',
+                       help='Force streaming mode (don\'t preload references). Use this for very large reference datasets.')
+    parser.add_argument('--max_ref_memory_gb', type=float, default=8.0,
+                       help='Maximum memory (GB) to use for preloading reference data. If references exceed this, streaming mode will be used.')
     
     args = parser.parse_args()
     
     calculate_pairwise_dissimilarity_matrix_batched(
         args.sc_files, args.ref_files, args.output_dir,
         args.min_reads, args.min_sites, args.n_processes,
-        not args.all_cytosines  # cpg_only is True when all_cytosines is False (default: CpG only)
+        not args.all_cytosines,  # cpg_only is True when all_cytosines is False (default: CpG only)
+        args.force_streaming, args.max_ref_memory_gb
     ) 
