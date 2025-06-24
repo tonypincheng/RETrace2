@@ -10,14 +10,9 @@ import os
 import glob
 import argparse
 from tqdm import tqdm
-import gzip
 import multiprocessing
-from functools import partial
-import json
 import psutil
-import resource
 import gc
-import sys
 
 def get_memory_usage_mb():
     """Get current memory usage in MB."""
