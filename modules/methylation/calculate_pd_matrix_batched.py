@@ -13,6 +13,28 @@ from tqdm import tqdm
 import multiprocessing
 import psutil
 import gc
+from datetime import datetime
+
+# Global variable to track report file path
+REPORT_FILE = None
+
+def write_to_report(message):
+    """Write a message to the report file with timestamp."""
+    global REPORT_FILE
+    if REPORT_FILE:
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        with open(REPORT_FILE, 'a') as f:
+            f.write(f"[{timestamp}] {message}\n")
+
+def initialize_report_file(output_dir):
+    """Initialize the report file for data validation issues."""
+    global REPORT_FILE
+    REPORT_FILE = os.path.join(output_dir, 'data_validation_report.txt')
+    # Clear existing report file
+    with open(REPORT_FILE, 'w') as f:
+        f.write("RETrace2 Data Validation Report\n")
+        f.write("=" * 50 + "\n\n")
+    print(f"Data validation report will be written to: {REPORT_FILE}")
 
 def get_memory_usage_mb():
     """Get current memory usage in MB."""
@@ -108,17 +130,53 @@ def read_allc_fast(file_path, cpg_only=True, has_header=False):
         if cpg_only:
             df = df[df['context'].str.startswith('CG', na=False)]
         
-        # Calculate methylation fraction
-        df['mc_frac'] = df['mc_count'] / np.maximum(df['total_count'], 1)
+        # Validate data integrity before calculating methylation fraction
+        initial_sites = len(df)
         
-        # Create site key
+        # Check for impossible cases: mc_count > total_count
+        invalid_counts = df['mc_count'] > df['total_count']
+        if invalid_counts.any():
+            n_invalid = invalid_counts.sum()
+            write_to_report(f"File {file_path}: Found {n_invalid} sites where mc_count > total_count. These sites will be excluded.")
+            df = df[~invalid_counts]
+        
+        # Remove sites with zero total_count (no reads)
+        zero_coverage = df['total_count'] == 0
+        if zero_coverage.any():
+            n_zero = zero_coverage.sum()
+            write_to_report(f"File {file_path}: Found {n_zero} sites with zero total_count. These sites will be excluded.")
+            df = df[~zero_coverage]
+        
+        if df.empty:
+            write_to_report(f"File {file_path}: No valid sites remaining after data validation.")
+            return pd.DataFrame()
+        
+        # Calculate methylation fraction (now safe - no division by zero or invalid ratios)
+        df['mc_frac'] = df['mc_count'] / df['total_count']
+        
+        # Final validation: ensure mc_frac is between 0 and 1
+        invalid_fractions = (df['mc_frac'] < 0) | (df['mc_frac'] > 1)
+        if invalid_fractions.any():
+            n_invalid_frac = invalid_fractions.sum()
+            write_to_report(f"File {file_path}: Found {n_invalid_frac} sites with invalid mc_frac (not between 0-1). These sites will be excluded.")
+            df = df[~invalid_fractions]
+        
+        if df.empty:
+            write_to_report(f"File {file_path}: No valid sites remaining after methylation fraction validation.")
+            return pd.DataFrame()
+        
+        # Create site key and consider adding strand and GC context in future
         df['site_key'] = df['chromosome'].astype(str) + '_' + df['position'].astype(str)
         
         result = df[['site_key', 'mc_count', 'total_count', 'mc_frac']].copy()
         del df
         gc.collect()
         
-        print(f"{os.path.basename(file_path)}: {len(result)} sites")
+        filtered_sites = len(result)
+        if initial_sites != filtered_sites:
+            write_to_report(f"File {file_path}: Filtered from {initial_sites} to {filtered_sites} sites ({initial_sites - filtered_sites} sites excluded).")
+        
+        print(f"{os.path.basename(file_path)}: {filtered_sites} valid sites (filtered from {initial_sites})")
         return result
         
     except Exception as e:
@@ -141,6 +199,21 @@ def calculate_dissimilarity_fast(sc_df, ref_df, min_reads=1, min_sites=300):
     
     # Vectorized calculation
     dissimilarities = np.abs(merged['mc_frac_sc'].values - merged['mc_frac_ref'].values) * 100
+    
+    # Validate dissimilarity values should be between 0 and 100
+    invalid_dissim = (dissimilarities < 0) | (dissimilarities > 100)
+    if invalid_dissim.any():
+        n_invalid = invalid_dissim.sum()
+        max_invalid = np.max(dissimilarities[invalid_dissim]) if n_invalid > 0 else 0
+        write_to_report(f"Found {n_invalid} invalid dissimilarity values (not between 0-100). Max invalid value: {max_invalid:.2f}. These will be excluded from calculation.")
+        # Keep only valid dissimilarities
+        dissimilarities = dissimilarities[~invalid_dissim]
+        
+        # If no valid dissimilarities remain, return NaN
+        if len(dissimilarities) == 0:
+            write_to_report("No valid dissimilarity values remaining after filtering.")
+            return np.nan, len(merged)
+    
     return np.mean(dissimilarities), len(merged)
 
 def preload_references(ref_files, cpg_only=True):
@@ -354,6 +427,9 @@ def calculate_pairwise_dissimilarity_matrix_batched(sc_files, ref_files, output_
     """Main function for batched processing with automatic memory management."""
     os.makedirs(output_dir, exist_ok=True)
     
+    # Initialize report file for data validation issues
+    initialize_report_file(output_dir)
+    
     sc_files = expand_file_patterns(sc_files)
     ref_files = expand_file_patterns(ref_files)
     
@@ -402,6 +478,7 @@ def calculate_pairwise_dissimilarity_matrix_batched(sc_files, ref_files, output_
     sites_matrix.to_csv(sites_matrix_file)
     
     print(f"Results saved to {pd_matrix_file} and {sites_matrix_file}")
+    print(f"Data validation report saved to {REPORT_FILE}")
     return pd_matrix, sites_matrix
 
 if __name__ == "__main__":
