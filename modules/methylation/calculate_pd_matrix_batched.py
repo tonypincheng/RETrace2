@@ -93,10 +93,10 @@ def get_optimal_process_count(n_processes=None, ref_memory_mb=0):
     memory_limited = max(1, int(usable_memory_gb / memory_per_process_gb))
     
     # Conservative CPU limit - especially important for large datasets
-    if ref_memory_gb > 2:  # If references are large
-        cpu_limited = max(1, min(cpu_count // 2, 10))  # Conservative
+    if ref_memory_gb > 10:  # If references are large
+        cpu_limited = max(1, min(cpu_count // 2, 12))  # Conservative
     else:
-        cpu_limited = max(1, min(cpu_count - 1, 12))   # Moderately conservative
+        cpu_limited = max(1, min(cpu_count - 1, 20))   # Set max cpu to 20 to avoid memory issues
     
     optimal = min(memory_limited, cpu_limited)
     
