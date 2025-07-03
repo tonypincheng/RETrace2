@@ -57,7 +57,7 @@ def helpMessage() {
       --run_methylation Run methylation analysis (default: ${params.run_methylation})
       --methylpy_ref    Path prefix for methylpy reference files [optional]. If not specified, will use ${params.genome_base}/${params.genome}/methylpl-ref/${params.genome}      
       --min_reads_per_site Minimum number of reads required per cytosine site (default: 1)
-      --min_shared_sites Minimum number of shared sites required for comparison (default: 300)
+      --min_shared_sites Minimum number of shared sites required for comparison (default: 100)
       --all_cytosines Use all methylation contexts, not just CpG sites (default: false)
       --celltype_ref_dir Directory containing reference cell type files (required for cell type inference)
       --celltype_ref_pattern Pattern to match files in celltype_ref_dir (default: *.tsv.gz)
@@ -130,8 +130,9 @@ include { PHYLO } from './modules/phylo/phylo.nf'
 // Conditionally include METHYLATION module
 if (params.run_methylation) {
     include { METHYLATION } from './modules/methylation/methylation.nf'
+    include { INFER_CELLTYPE } from './modules/infer_celltype/infer_celltype.nf'
 }
-//include { BOOTSTRAP } from './modules/bootstrap/bootstrap.nf' 
+
 //include { EVALUATION } from './modules/evaluation/evaluation.nf' 
 
 
@@ -183,6 +184,7 @@ workflow {
         methylation_allc_ch = METHYLATION.out.allc
     }
     
+    
     // Pass both microsatellite BAM and methylation files to STATS
     STATS(MAPPING.out.bam, methylation_allc_ch)
     
@@ -192,6 +194,11 @@ workflow {
     // Run PHYLO for phylogenetic tree construction
     PHYLO(HIPSTR.out.alleleDict, HIPSTR.out.sample_list)
     
+    // Run cell type inference if enabled
+    if (params.run_methylation && params.celltype_ref_dir) {
+        INFER_CELLTYPE(methylation_allc_ch.map { tuple -> tuple[1] })
+    }
+
     // if (params.run_evaluation) {
     //     if (params.ground_truth) {
     //         EVALUATION(tree_ch, file(params.ground_truth))
@@ -244,9 +251,17 @@ workflow.onComplete {
             log.info """
         Methylation results:
         - Methylation FASTQC: ${params.output_dir}/methylation/fastqc/
-        - Methylation allc files: ${params.output_dir}/methylation/allc/
+        - Methylation allc files: ${params.output_dir}/methylation/methylpy/
         - Combined statistics: ${params.output_dir}/stats/ (includes both MS and CpG data)
             """
+            
+            if (params.celltype_ref_dir) {
+                log.info """
+        Cell type inference results:
+        - Pairwise dissimilarity matrix: ${params.output_dir}/infer_celltype/pd_matrix/
+        - Cell type assignments: ${params.output_dir}/infer_celltype/assignments/
+                """
+            }
         }
         
         log.info "==========================================="

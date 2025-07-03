@@ -16,3 +16,4 @@ report/
 logs/
 test*
 __pycache__/
+archive/

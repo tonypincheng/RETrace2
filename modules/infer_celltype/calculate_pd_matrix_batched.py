@@ -502,7 +502,7 @@ if __name__ == "__main__":
                        help='Output directory for results')
     parser.add_argument('--min_reads', type=int, default=1,
                        help='Minimum number of reads for a methylation site (applies to both single cell and reference files)')
-    parser.add_argument('--min_sites', type=int, default=300,
+    parser.add_argument('--min_sites', type=int, default=100,
                        help='Minimum number of shared sites required')
     parser.add_argument('--n_processes', type=int, default=None,
                        help='Number of processes to use for parallel processing. If None, automatically determines optimal count based on system resources')
