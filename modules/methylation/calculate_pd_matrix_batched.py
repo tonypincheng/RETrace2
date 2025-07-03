@@ -121,7 +121,7 @@ def read_allc_fast(file_path, cpg_only=True, has_header=False):
         # Read file efficiently - only first 6 columns
         df = pd.read_csv(file_path, sep='\t', header=None, names=col_names, 
                         comment='#', skiprows=1 if has_header else 0,
-                        dtype=col_types, compression='gzip', engine='c',
+                        dtype=col_types, compression='infer', engine='c',
                         usecols=range(6))  # Only read first 6 columns
         
         # Clean and filter
