@@ -13,6 +13,7 @@ from tqdm import tqdm
 import multiprocessing
 import psutil
 import gc
+import time
 from datetime import datetime
 
 # Global variable to track report file path
@@ -515,9 +516,26 @@ if __name__ == "__main__":
     
     args = parser.parse_args()
     
+    # Record start time
+    start_time = time.time()
+    print(f"Starting analysis at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    
     calculate_pairwise_dissimilarity_matrix_batched(
         args.sc_files, args.ref_files, args.output_dir,
         args.min_reads, args.min_sites, args.n_processes,
         not args.all_cytosines,  # cpg_only is True when all_cytosines is False (default: CpG only)
         args.force_streaming, args.max_ref_memory_gb
-    ) 
+    )
+    
+    # Record end time and calculate elapsed time
+    end_time = time.time()
+    elapsed_time = end_time - start_time
+    
+    # Format and print elapsed time
+    hours = int(elapsed_time // 3600)
+    minutes = int((elapsed_time % 3600) // 60)
+    seconds = elapsed_time % 60
+    
+    print(f"\nAnalysis completed at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    print(f"Total execution time: {hours:02d}:{minutes:02d}:{seconds:05.2f}")
+    print(f"Total execution time: {elapsed_time:.2f} seconds") 
