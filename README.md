@@ -77,6 +77,7 @@ RETrace2/
 │   ├── methylation/     # Methylation processing
 │   ├── infer_celltype/  # Infer cell type from methylation
 │   └── evaluation/      # Tree accuracy evaluation
+├── notebooks/           # Jupyter notebook examples
 ├── resources/           # Probe target bed
 ├── scripts/             # Supporting scripts
 ├── main.nf              # Main pipeline
