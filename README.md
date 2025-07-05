@@ -74,7 +74,8 @@ RETrace2/
 │   ├── hipstr/          # Microsatellite calling
 │   ├── phylo/           # Phylogenetic tree reconstruction
 │   ├── bootstrap/       # Tree bootstrapping analysis
-│   ├── methylation/     # Methylation analysis
+│   ├── methylation/     # Methylation processing
+│   ├── infer_celltype/  # Infer cell type from methylation
 │   └── evaluation/      # Tree accuracy evaluation
 ├── resources/           # Probe target bed
 ├── scripts/             # Supporting scripts
