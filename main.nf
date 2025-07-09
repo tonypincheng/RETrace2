@@ -58,7 +58,7 @@ def helpMessage() {
       --methylpy_ref    Path prefix for methylpy reference files [optional]. If not specified, will use ${params.genome_base}/${params.genome}/methylpl-ref/${params.genome}      
       --min_reads_per_site Minimum number of reads required per cytosine site (default: 1)
       --min_shared_sites Minimum number of shared sites required for comparison (default: 100)
-      --all_cytosines Use all methylation contexts, not just CpG sites (default: false)
+      --all_cytosines   Use all methylation contexts, not just CpG sites (default: false)
       --celltype_ref_dir Directory containing reference cell type files (required for cell type inference)
       --celltype_ref_pattern Pattern to match files in celltype_ref_dir (default: *.tsv.gz)
 
