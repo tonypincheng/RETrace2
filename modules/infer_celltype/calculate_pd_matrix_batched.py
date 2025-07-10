@@ -97,7 +97,7 @@ def get_optimal_process_count(n_processes=None, ref_memory_mb=0):
     if ref_memory_gb > 10:  # If references are large
         cpu_limited = max(1, min(cpu_count // 2, 12))  # Conservative
     else:
-        cpu_limited = max(1, min(cpu_count - 1, 20))   # Set max cpu to 20 to avoid memory issues
+        cpu_limited = max(1, min(cpu_count - 1, 30))   # Set hard max cpu limit here to avoid memory issues
     
     optimal = min(memory_limited, cpu_limited)
     
@@ -503,7 +503,7 @@ if __name__ == "__main__":
                        help='Output directory for results')
     parser.add_argument('--min_reads', type=int, default=1,
                        help='Minimum number of reads for a methylation site (applies to both single cell and reference files)')
-    parser.add_argument('--min_sites', type=int, default=100,
+    parser.add_argument('--min_sites', type=int, default=10,
                        help='Minimum number of shared sites required')
     parser.add_argument('--n_processes', type=int, default=None,
                        help='Number of processes to use for parallel processing. If None, automatically determines optimal count based on system resources')
