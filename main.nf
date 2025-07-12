@@ -61,6 +61,8 @@ def helpMessage() {
       --all_cytosines   Use all methylation contexts, not just CpG sites (default: false)
       --celltype_ref_dir Directory containing reference cell type files (required for cell type inference)
       --celltype_ref_pattern Pattern to match files in celltype_ref_dir (default: *.tsv.gz)
+      --zscore_threshold Z-score threshold for cell type inference (default: ${params.zscore_threshold})
+      --min_confidence_score Minimum confidence score for cell type inference (default: ${params.min_confidence_score})
 
       --help            Display this help message
     """
@@ -260,6 +262,8 @@ workflow.onComplete {
         Cell type inference results:
         - Pairwise dissimilarity matrix: ${params.output_dir}/infer_celltype/pd_matrix/
         - Cell type assignments: ${params.output_dir}/infer_celltype/assignments/
+        - Z-score matrix: ${params.output_dir}/infer_celltype/assignments/
+        - Cell type plots: ${params.output_dir}/infer_celltype/assignments/
                 """
             }
         }

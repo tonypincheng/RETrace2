@@ -26,27 +26,29 @@ process CALCULATE_PD_MATRIX {
     """
 }
 
-// process ASSIGN_CELLTYPE {
-//     publishDir "${params.output_dir}/infer_celltype/assignments", mode: 'copy'
+process ASSIGN_CELLTYPE {
+    publishDir "${params.output_dir}/infer_celltype/assignments", mode: 'copy'
 
-//     input:
-//     path pd_matrix
-//     path sites_matrix
+    input:
+    path pd_matrix
+    path sites_matrix
 
-//     output:
-//     path "celltype_assignments.csv", emit: assignments
-//     path "celltype_confidence_scores.csv", emit: confidence_scores
+    output:
+    path "celltype_assignments.tsv", emit: assignments
+    path "zscore_matrix.csv", emit: zscore_matrix, optional: true
+    path "*.pdf", emit: plots, optional: true
 
-//     script:
-//     """
-//     python ${baseDir}/modules/infer_celltype/assign_celltype.py \
-//         --pd_matrix ${pd_matrix} \
-//         --sites_matrix ${sites_matrix} \
-//         --output_dir . \
-//         --min_confidence_score ${params.min_confidence_score ?: 0.7} \
-//         --assignment_method ${params.celltype_assignment_method ?: 'nearest_neighbor'}
-//     """
-// }
+    script:
+    def sites_arg = sites_matrix.name != 'NO_FILE' ? "--sites_matrix ${sites_matrix}" : ""
+    """
+    python ${baseDir}/modules/infer_celltype/assign_celltype.py \
+        --pd_matrix ${pd_matrix} \
+        ${sites_arg} \
+        --output_dir . \
+        --min_confidence_score ${params.min_confidence_score ?: 0} \
+        --threshold ${params.zscore_threshold ?: -1.2}
+    """
+}
 
 // Create channel for reference files
 if (params.celltype_ref_dir) {
@@ -68,10 +70,10 @@ workflow INFER_CELLTYPE {
     CALCULATE_PD_MATRIX(allc_files.collect(), celltype_ref_ch.collect())
     
     // Assign cell types based on the matrix
-    //ASSIGN_CELLTYPE(CALCULATE_PD_MATRIX.out.pd_matrix)
+    ASSIGN_CELLTYPE(CALCULATE_PD_MATRIX.out.pd_matrix, CALCULATE_PD_MATRIX.out.sites_matrix)
     
     emit:
     pd_matrix = CALCULATE_PD_MATRIX.out.pd_matrix
-    //assignments = ASSIGN_CELLTYPE.out.assignments
+    assignments = ASSIGN_CELLTYPE.out.assignments
 
 } 
