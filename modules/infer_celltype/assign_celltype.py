@@ -6,8 +6,7 @@ This script assigns cell types to samples based on pairwise dissimilarity matric
 1. Reads pairwise dissimilarity matrix and optional sites matrix
 2. Calculates z-score transformed matrix for each sample
 3. Assigns cell types based on minimum z-score (best match) and threshold
-4. Calculates confidence scores based on z-score separation
-5. Generates visualization plots and outputs results
+4. Generates visualization plots and outputs results
 
 The sites matrix (optional) contains the number of shared CpG sites between each 
 sample and reference cell type, providing context for the reliability of 
@@ -228,22 +227,14 @@ def calculate_zscore_matrix(df):
 
 def create_assignment_table(df_zscore, threshold=-1.2):
     """
-    Create assignment table based on z-score threshold with confidence scores.
-    
-    The confidence score is based on how well-separated the best match is from 
-    the second-best match in terms of z-scores:
-    
-    1. Zscore_Difference = Second_Best_Zscore - Min_Zscore
-    2. Larger differences indicate more confident assignments
-    3. Confidence_Score = min(Zscore_Difference / 2.0, 1.0)
-    4. Unassigned samples get confidence = 0.0
+    Create assignment table based on z-score threshold.
     
     Args:
         df_zscore (pd.DataFrame): Z-score transformed matrix
         threshold (float): Z-score threshold for assignment
         
     Returns:
-        pd.DataFrame: Complete assignment table with confidence scores
+        pd.DataFrame: Assignment table
     """
     # Find the minimum z-score (best match) for each sample
     best_matches = df_zscore.idxmin(axis=1)
@@ -257,44 +248,35 @@ def create_assignment_table(df_zscore, threshold=-1.2):
         lambda row: row.nsmallest(2).iloc[1], axis=1
     )
     
-    # Calculate z-score difference and confidence score
-    zscore_difference = second_best_zscores - min_zscores
+    # Check if passes threshold
     passes_threshold = min_zscores < threshold
-    confidence_score = np.where(
-        passes_threshold,
-        np.clip(zscore_difference / 2.0, 0, 1),
-        0.0  # No confidence for unassigned samples
-    )
     
-    # Create complete assignment table
+    # Create assignment table
     assignment_table = pd.DataFrame({
         'Sample_ID': df_zscore.index,
         'Best_Match': best_matches,
         'Min_Zscore': min_zscores,
         'Second_Best_Match': second_best_matches,
         'Second_Best_Zscore': second_best_zscores,
-        'Zscore_Difference': zscore_difference,
         'Passes_Threshold': passes_threshold,
-        'Assignment': np.where(passes_threshold, best_matches, 'Unassigned'),
-        'Confidence_Score': confidence_score
+        'Assignment': np.where(passes_threshold, best_matches, 'Unassigned')
     })
     
     return assignment_table
 
-def print_assignment_summary(assignment_table, threshold, min_confidence_score=0):
+def print_assignment_summary(assignment_table, threshold):
     """
-    Print summary statistics for assignments including confidence scores.
+    Print summary statistics for assignments.
     
     Args:
-        assignment_table (pd.DataFrame): Assignment table with confidence scores
+        assignment_table (pd.DataFrame): Assignment table
         threshold (float): Z-score threshold used
-        min_confidence_score (float): Minimum confidence score threshold
     """
     total_samples = len(assignment_table)
     assigned_samples = assignment_table['Passes_Threshold'].sum()
     unassigned_samples = total_samples - assigned_samples
     
-    print(f"\nAssignment Summary (z-score threshold: {threshold}, confidence score threshold: {min_confidence_score}):")
+    print(f"\nAssignment Summary (z-score threshold: {threshold}):")
     print(f"Total samples: {total_samples}")
     print(f"Assigned samples: {assigned_samples} ({assigned_samples/total_samples*100:.1f}%)")
     print(f"Unassigned samples: {unassigned_samples} ({unassigned_samples/total_samples*100:.1f}%)")
@@ -304,20 +286,6 @@ def print_assignment_summary(assignment_table, threshold, min_confidence_score=0
         assignment_counts = assignment_table[assignment_table['Passes_Threshold']]['Best_Match'].value_counts()
         for cell_type, count in assignment_counts.items():
             print(f"  {cell_type}: {count} samples")
-    
-    # Confidence summary
-    print(f"\nConfidence Summary:")
-    print(f"Mean confidence score: {assignment_table['Confidence_Score'].mean():.3f}")
-    print(f"Median confidence score: {assignment_table['Confidence_Score'].median():.3f}")
-    
-    if min_confidence_score > 0:
-        high_conf_count = (assignment_table['Confidence_Score'] >= min_confidence_score).sum()
-        print(f"High confidence assignments (≥{min_confidence_score}): {high_conf_count}/{total_samples} ({high_conf_count/total_samples*100:.1f}%)")
-        
-        low_conf_count = ((assignment_table['Passes_Threshold']) & 
-                         (assignment_table['Confidence_Score'] < min_confidence_score)).sum()
-        if low_conf_count > 0:
-            print(f"Low confidence assignments (<{min_confidence_score}): {low_conf_count}/{total_samples} ({low_conf_count/total_samples*100:.1f}%)")
 
 def main():
     parser = argparse.ArgumentParser(
@@ -329,9 +297,6 @@ def main():
                         help='Path to shared CpG sites matrix file (optional) - contains counts of shared sites between samples and references')
     parser.add_argument('--output_dir', required=True,
                         help='Output directory for results')
-    parser.add_argument('--min_confidence_score', type=float, default=0,
-                        help='Minimum confidence score for assignments (default: 0)')
-
     parser.add_argument('--threshold', '-t', type=float, default=-1.2,
                         help='Z-score threshold for assignment (default: -1.2)')
     parser.add_argument('--figsize', nargs=2, type=int, default=[12, 10],
@@ -362,7 +327,6 @@ def main():
         print("No sites matrix provided - proceeding with PD matrix only")
     print(f"Output directory: {args.output_dir}")
     print(f"Z-score threshold: {args.threshold}")
-    print(f"Min confidence score: {args.min_confidence_score}")
     
     # Read the matrices
     pd_matrix = read_matrix(args.pd_matrix)
@@ -389,22 +353,11 @@ def main():
     print("\nGenerating z-score PD matrix plot...")
     plot_zscore_matrix(df_zscore, args.output_dir)
     
-    # Create assignment table with confidence scores
-    print(f"\nCreating cell type assignments with confidence scores...")
+    # Create assignment table
+    print(f"\nCreating cell type assignments...")
     assignment_table = create_assignment_table(df_zscore, args.threshold)
     
-    # Filter by minimum confidence score if specified
-    if args.min_confidence_score > 0:
-        print(f"Filtering assignments by minimum confidence score: {args.min_confidence_score}")
-        # Update assignments for samples below confidence threshold
-        assignment_table['Assignment'] = np.where(
-            (assignment_table['Passes_Threshold']) & 
-            (assignment_table['Confidence_Score'] >= args.min_confidence_score),
-            assignment_table['Assignment'],
-            np.where(assignment_table['Passes_Threshold'], 'Low_Confidence', 'Unassigned')
-        )
-    
-    # Save assignment table with confidence scores
+    # Save assignment table
     assignments_path = os.path.join(args.output_dir, 'celltype_assignments.tsv')
     assignment_table.to_csv(assignments_path, sep='\t', index=False)
     print(f"Cell type assignments saved to: {assignments_path}")
@@ -415,7 +368,7 @@ def main():
     print(f"Z-score matrix saved to: {zscore_path}")
     
     # Print summary
-    print_assignment_summary(assignment_table, args.threshold, args.min_confidence_score)
+    print_assignment_summary(assignment_table, args.threshold)
     
     print(f"\nAnalysis complete! All outputs saved to: {args.output_dir}")
 

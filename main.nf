@@ -62,7 +62,6 @@ def helpMessage() {
       --celltype_ref_dir Directory containing reference cell type files (required for cell type inference)
       --celltype_ref_pattern Pattern to match files in celltype_ref_dir (default: *.tsv.gz)
       --zscore_threshold Z-score threshold for cell type inference (default: ${params.zscore_threshold})
-      --min_confidence_score Minimum confidence score for cell type inference (default: ${params.min_confidence_score})
 
       --help            Display this help message
     """

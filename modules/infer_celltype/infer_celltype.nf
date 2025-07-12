@@ -45,7 +45,6 @@ process ASSIGN_CELLTYPE {
         --pd_matrix ${pd_matrix} \
         ${sites_arg} \
         --output_dir . \
-        --min_confidence_score ${params.min_confidence_score ?: 0} \
         --threshold ${params.zscore_threshold ?: -1.2}
     """
 }
