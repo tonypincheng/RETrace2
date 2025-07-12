@@ -1,8 +1,4 @@
 #!/usr/bin/env python3
-"""
-Batched processing version that preloads reference data for maximum speed.
-This approach minimizes I/O and prevents hangs with high process counts.
-"""
 
 import pandas as pd
 import numpy as np
