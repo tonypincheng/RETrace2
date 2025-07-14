@@ -39,8 +39,6 @@ RETrace2 is a Nextflow-based bioinformatics pipeline for processing and analyzin
 - [x] Methylation processing
 - [x] Methylation infer cell type
 - [ ] Docker containerization
-- [ ] Paired-end read support
-- [ ] Tutorial
 <br>
 
 ## Features
@@ -58,7 +56,6 @@ RETrace2 is a Nextflow-based bioinformatics pipeline for processing and analyzin
 
 - Current support:
   - Single-end read (used in RETrace2)
-  - Paired-end read support planned for future releases
 
 <br>
 
@@ -140,7 +137,7 @@ The pipeline uses a CSV samplesheet with the following columns:
 | group | Group identifier for the sample (optional) |
 | color | Color for visualization (optional, hex format) |
 
-> **Note:** Currently, RETrace2 only supports single-end read. The columns are named with "_1" suffix to allow for future paired-end support where "_2" columns will be added.
+> **Note:** Currently, RETrace2 only supports single-end read.
 
 An example samplesheet has been provided in [assets/samplesheet_msh2.csv](assets/samplesheet_msh2.csv).
 
