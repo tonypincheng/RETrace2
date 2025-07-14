@@ -37,7 +37,7 @@ RETrace2 is a Nextflow-based bioinformatics pipeline for processing and analyzin
 - [x] Phylogenetic tree reconstruction
 - [x] Target-based bootstrapping
 - [x] Methylation processing
-- [ ] Methylation infer cell type
+- [x] Methylation infer cell type
 - [ ] Docker containerization
 - [ ] Paired-end read support
 - [ ] Tutorial
@@ -77,7 +77,7 @@ RETrace2/
 │   ├── methylation/     # Methylation processing
 │   ├── infer_celltype/  # Infer cell type from methylation
 │   └── evaluation/      # Tree accuracy evaluation
-├── notebooks/           # Jupyter notebook examples
+├── notebooks/           # Jupyter notebooks
 ├── resources/           # Probe target bed
 ├── scripts/             # Supporting scripts
 ├── main.nf              # Main pipeline
