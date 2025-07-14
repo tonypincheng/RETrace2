@@ -55,7 +55,7 @@ RETrace2 is a Nextflow-based bioinformatics pipeline for processing and analyzin
   - Methylation analysis for cell type inference
 
 - Current support:
-  - Single-end read (used in RETrace2)
+  - Single-end read
 
 <br>
 
