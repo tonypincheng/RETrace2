@@ -4,7 +4,7 @@ channels:
   - bioconda
   - defaults
 dependencies:
-  - nextflow=25.04.3
+  - nextflow=25.04.6
   - fastqc=0.12.1
   - multiqc=1.28
   - python=3.9
