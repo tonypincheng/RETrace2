@@ -5,7 +5,6 @@ nextflow.enable.dsl=2
 process METH_FASTQC {
     publishDir "${params.output_dir}/methylation/fastqc", mode: 'copy'
     container "quay.io/biocontainers/fastqc:0.12.1--hdfd78af_0"
-    conda "bioconda::fastqc=0.12.1"
     
     input:
     tuple val(sample_id), path(reads)
@@ -23,7 +22,6 @@ process METH_FASTQC {
 process METH_MULTIQC {
     publishDir "${params.output_dir}/methylation/fastqc", mode: 'copy'
     container "quay.io/biocontainers/multiqc:1.28--pyhdfd78af_0"
-    conda "bioconda::multiqc=1.28"
    
     input:
     path('fastqc/*')
@@ -41,8 +39,7 @@ process METH_MULTIQC {
 
 process METH_TRIM_GALORE {
     publishDir "${params.output_dir}/methylation/trimmed", mode: 'symlink'
-    container "community.wave.seqera.io/library/trim-galore:0.6.10--1bf8ca4e1967cd18"
-    conda "bioconda::trim-galore=0.6.10"
+    container "quay.io/biocontainers/trim-galore:0.6.10--hdfd78af_0"
 
     input:
     tuple val(sample_id), path(reads)
@@ -68,8 +65,7 @@ process METH_TRIM_GALORE {
 
 process METHYLPY {
     publishDir "${params.output_dir}/methylation/methylpy", mode: 'copy'
-    container "community.wave.seqera.io/library/pip_methylpy:ae44180dc4227f32"
-    conda "bioconda::methylpy=1.4.7"
+    container "retrace2/python:latest"
     
     input:
     tuple val(sample_id), path(trimmed_reads)

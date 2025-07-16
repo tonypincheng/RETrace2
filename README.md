@@ -38,7 +38,7 @@ RETrace2 is a Nextflow-based bioinformatics pipeline for processing and analyzin
 - [x] Target-based bootstrapping
 - [x] Methylation processing
 - [x] Methylation infer cell type
-- [ ] Docker containerization
+- [x] Docker containerization
 <br>
 
 ## Features
@@ -224,25 +224,20 @@ For more information, visit [HipSTR](https://github.com/HipSTR-Tool/HipSTR).
 
 
 ### Docker 
-> ⚠️ **Under Active Development** ⚠️
-
 To use Docker containers for all tools:
 
 ```bash
+# First, build the custom image (one-time setup)
+chmod +x docker/build_docker.sh && docker/build_docker.sh
+
+# Then run with Docker profile
 nextflow run main.nf -profile docker
 ```
 
+For detailed Docker setup instructions, see [docker/README_DOCKER.md](docker/README_DOCKER.md).
+
 If you don't have Docker installed, get it from the [official website](https://docs.docker.com/get-docker/).
 
-### Conda
-Alternatively, you can use Conda to automatically create environments with required dependencies:
-
-```bash
-nextflow run main.nf -profile conda
-```
-
-This will automatically create and manage Conda environments based on the requirements in `environment.yml`.
-<br>
 <br>
 
 ## Reference Genome Configuration

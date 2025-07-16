@@ -4,6 +4,7 @@ nextflow.enable.dsl=2
 
 process CALCULATE_PD_MATRIX {
     publishDir "${params.output_dir}/infer_celltype/pd_matrix", mode: 'copy'
+    container "retrace2/python:latest"
 
     input:
     path allc_files
@@ -28,6 +29,7 @@ process CALCULATE_PD_MATRIX {
 
 process ASSIGN_CELLTYPE {
     publishDir "${params.output_dir}/infer_celltype/assignments", mode: 'copy'
+    container "retrace2/python:latest"
 
     input:
     path pd_matrix

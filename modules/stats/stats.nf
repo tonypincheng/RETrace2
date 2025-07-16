@@ -5,7 +5,6 @@ nextflow.enable.dsl=2
 process COUNT_TARGETS {
     publishDir "${params.output_dir}/stats/ms_counts", mode: 'copy'
     container "quay.io/biocontainers/pysam:0.22.1--py39hdd5828d_3"
-    conda "bioconda::pysam=0.22.1"
 
     input:
     tuple val(sample_id), path(bam_reads), path(bam_index)
@@ -24,8 +23,7 @@ process COUNT_TARGETS {
 
 process COMBINE_STATS {
     publishDir "${params.output_dir}/stats", mode: 'copy'
-    //container "quay.io/biocontainers/python:3.9"
-    //conda "conda-forge::python=3.9 conda-forge::matplotlib=3.9.4 seaborn=0.13.2"
+    container "retrace2/python:latest"
     
     input:
     path(ms_counts)
