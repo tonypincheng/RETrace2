@@ -114,19 +114,22 @@ Currently using local containers only. For production deployment:
 
 ## Docker Hub Registry (Recommended)
 
-For AWS instances and production deployments, use Docker Hub registry to avoid rebuilding:
+**✅ Public Image Available:** `tonypincheng/retrace2-python:latest`
 
-### One-Time Setup
+The pipeline is already configured to use a public Docker image. No setup required!
+
+### For AWS Instances
+- ✅ **No rebuilding** needed after restarts
+- ✅ **Automatic pulling** from Docker Hub
+- ✅ **Zero configuration** - just run with `-profile docker`
+
+### Custom Image (Optional)
+If you need to modify the container:
 ```bash
 cd docker
 ./build_docker.sh           # Build the image locally
-./setup_registry.sh         # Push to Docker Hub
+./setup_registry.sh         # Push to your Docker Hub
 ```
-
-This will:
-1. Guide you through Docker Hub setup
-2. Push your image to Docker Hub
-3. Show you how to update nextflow.config
 
 ### Benefits
 - ✅ No rebuilding after AWS restarts

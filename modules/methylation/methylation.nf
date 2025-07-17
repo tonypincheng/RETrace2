@@ -65,7 +65,7 @@ process METH_TRIM_GALORE {
 
 process METHYLPY {
     publishDir "${params.output_dir}/methylation/methylpy", mode: 'copy'
-    container "retrace2/python:latest"
+    container "tonypincheng/retrace2-python:latest"
     
     input:
     tuple val(sample_id), path(trimmed_reads)

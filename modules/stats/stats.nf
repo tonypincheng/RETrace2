@@ -23,7 +23,7 @@ process COUNT_TARGETS {
 
 process COMBINE_STATS {
     publishDir "${params.output_dir}/stats", mode: 'copy'
-    container "retrace2/python:latest"
+    container "tonypincheng/retrace2-python:latest"
     
     input:
     path(ms_counts)

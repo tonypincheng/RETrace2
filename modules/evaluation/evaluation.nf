@@ -4,7 +4,7 @@ nextflow.enable.dsl=2
 
 process EVALUATE_TREE {
     publishDir "${params.output_dir}/evaluation", mode: 'copy'
-    container "retrace2/python:latest"
+    container "tonypincheng/retrace2-python:latest"
     
     input:
     path(tree)

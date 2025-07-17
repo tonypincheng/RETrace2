@@ -114,11 +114,20 @@ cd retrace2
 
 ### Usage
 
-The typical command for running the pipeline is as follows:
-
+**Recommended (Docker):**
+```bash
+nextflow run main.nf -profile docker \
+                     --samplesheet path/to/samplesheet.csv \
+                     --output_dir results \
+                     --genome_base /path/to/genome_base \
+                     --genome mm39 \
+                     --target_bed path/to/target_bed
 ```
-nextflow run main.nf --samplesheet path/to/samplesheet.csv 
-                     --output_dir results
+
+**Alternative (Local installation):**
+```bash
+nextflow run main.nf --samplesheet path/to/samplesheet.csv \
+                     --output_dir results \
                      --genome_base /path/to/genome_base \
                      --genome mm39 \
                      --target_bed path/to/target_bed
@@ -165,9 +174,36 @@ For a full list of parameters, run `nextflow run main.nf --help`.
 
 
 ## Environments
-RETrace2 supports multiple execution environments through Nextflow profiles.
+RETrace2 supports two execution environments. **Docker is the recommended approach** for most users.
 
-### Prerequisites
+### Docker (Recommended) 🐳
+**✅ Easiest setup - no dependency management required!**
+
+```bash
+# No setup required! Just run with Docker profile
+nextflow run main.nf -profile docker
+```
+
+The pipeline uses a public Docker image (`tonypincheng/retrace2-python:latest`) that includes all required tools. Docker will automatically pull the image when needed.
+
+**Benefits:**
+- ✅ **Zero dependency management** - everything included
+- ✅ **Works on any system** with Docker installed
+- ✅ **Perfect for AWS/cloud** - no rebuilding after restarts
+- ✅ **Reproducible results** across different machines
+
+**Notes:** 
+- Docker has compatibility issues with FUSE-based filesystems (S3 mounts). If your data is on S3 mounts, copy it to local storage first.
+- Install Docker from the [official website](https://docs.docker.com/get-docker/) if not already installed.
+
+For detailed Docker information, see [docker/README_DOCKER.md](docker/README_DOCKER.md).
+
+<br>
+
+### Standard (Local Installation)
+For users who prefer local installations or cannot use Docker.
+
+**Prerequisites:**
 - nextflow=25.04.3
 - fastqc=0.12.1
 - multiqc=1.28
@@ -180,67 +216,32 @@ RETrace2 supports multiple execution environments through Nextflow profiles.
 - matplotlib=3.9.4
 - seaborn=0.13.2
 - bcftools=1.21
-- HipSTR=0.6.2 (instructions below)
+- HipSTR=0.6.2 (manual installation required)
 - more-itertools=10.7.0
 - scikit-bio=0.6.3
 - ete3=3.1.3
 - biopython=1.85
 
-> **Note:** You can also use Docker or Conda (see below) to handle dependencies automatically.
-<br>
-
-### Standard (Default)
-By default, the pipeline runs using your system's native tools without Docker or Conda.
+**Installation:**
 
 ```bash
-# This runs using your locally installed packages
+# Install most dependencies via conda
+conda env create -f environment.yml
+conda activate retrace2
+
+# HipSTR must be installed manually from source
+git clone https://github.com/HipSTR-Tool/HipSTR
+cd HipSTR && make
+# Add HipSTR to PATH or use --hipstr_path parameter
+```
+
+**Usage:**
+```bash
+# Run using locally installed tools (default)
 nextflow run main.nf
 ```
 
-You can install the required packages from the environment.yml file:
-
-```bash
-# Install directly from the environment.yml file
-conda env create -f environment.yml
-
-# Activate the environment
-conda activate retrace2
-```
-
-HipSTR is not available in conda repositories and must be installed from source:
-
-```bash
-# Clone the HipSTR repository
-git clone https://github.com/HipSTR-Tool/HipSTR
-cd HipSTR
-
-# Build HipSTR using Make
-make
-
-```
-Add the HipSTR executable to your PATH or specify full path using `--hipstr_path`. 
-
-For more information, visit [HipSTR](https://github.com/HipSTR-Tool/HipSTR).
-
-
-### Docker 
-To use Docker containers for all tools:
-
-```bash
-# First, build the custom image (one-time setup)
-cd docker && ./build_docker.sh
-
-# Then run with Docker profile
-nextflow run main.nf -profile docker
-```
-
-**Notes:** 
-- Docker has compatibility issues with FUSE-based filesystems (S3 mounts). If your data is on S3 mounts, copy it to local storage first or consider using Singularity instead.
-- For AWS instances, use Docker Hub registry to avoid rebuilding images after restarts.
-
-For detailed Docker setup instructions, see [docker/README_DOCKER.md](docker/README_DOCKER.md).
-
-If you don't have Docker installed, get it from the [official website](https://docs.docker.com/get-docker/).
+For more information about HipSTR installation, visit [HipSTR GitHub](https://github.com/HipSTR-Tool/HipSTR).
 
 <br>
 

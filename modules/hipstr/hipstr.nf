@@ -3,7 +3,7 @@
 nextflow.enable.dsl=2
 
 process FILTER_BAMS_BY_STATS {
-    container "retrace2/python:latest"
+    container "tonypincheng/retrace2-python:latest"
     
     input:
     tuple val(sample_id), path(bam_file), path(bam_index)
@@ -31,7 +31,7 @@ process FILTER_BAMS_BY_STATS {
 
 process HIPSTR_PER_CHROM {
     tag "$chrom"
-    container "retrace2/python:latest"
+    container "tonypincheng/retrace2-python:latest"
     
     input:
     val(chrom)
@@ -79,7 +79,7 @@ process HIPSTR_PER_CHROM {
 
 process MERGE_VCFS {
     publishDir "${params.output_dir}/hipstr", mode: 'copy'
-    container "retrace2/python:latest"
+    container "tonypincheng/retrace2-python:latest"
     
     input:
     path(vcfs)
@@ -108,7 +108,7 @@ process MERGE_VCFS {
 
 process HIPSTR_CALLING {
     publishDir "${params.output_dir}/hipstr", mode: 'copy'
-    container "retrace2/python:latest"
+    container "tonypincheng/retrace2-python:latest"
     
     input:
     path(bam_files)
@@ -154,7 +154,7 @@ process HIPSTR_CALLING {
 
 process PARSE_VCF {
     publishDir "${params.output_dir}/hipstr", mode: 'copy'
-    container "retrace2/python:latest"
+    container "tonypincheng/retrace2-python:latest"
     
     input:
     path(vcf_file)
