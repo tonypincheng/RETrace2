@@ -228,11 +228,15 @@ To use Docker containers for all tools:
 
 ```bash
 # First, build the custom image (one-time setup)
-chmod +x docker/build_docker.sh && docker/build_docker.sh
+cd docker && ./build_docker.sh
 
 # Then run with Docker profile
 nextflow run main.nf -profile docker
 ```
+
+**Notes:** 
+- Docker has compatibility issues with FUSE-based filesystems (S3 mounts). If your data is on S3 mounts, copy it to local storage first or consider using Singularity instead.
+- For AWS instances, use Docker Hub registry to avoid rebuilding images after restarts.
 
 For detailed Docker setup instructions, see [docker/README_DOCKER.md](docker/README_DOCKER.md).
 

@@ -24,7 +24,7 @@ def helpMessage() {
       --output_prefix   Prefix for output files (default: ${params.output_prefix})
       --threads         Number of CPU threads to use (default: ${params.threads})
       --memory          Memory to allocate for processes (default: ${params.memory})
-      --paired_end      Specify if data is paired-end sequencing (default: ${params.paired_end})
+      --paired_end      Specify if data is paired-end sequencing (default: ${params.paired_end}) [NOTE: Feature not fully implemented]
 
       --bwa_index_path  Path to BWA index [optional]. If not specified, will use ${params.genome_base}/${params.genome}/bwa-index/${params.genome}.fa
       --ref_fasta       Path to reference FASTA [optional]. If not specified, will use ${params.genome_base}/${params.genome}/raw_fasta/${params.genome}.fa
@@ -100,6 +100,7 @@ Output directory   : ${params.output_dir}
 Threads            : ${params.threads}
 Memory             : ${params.memory}
 Reference genome   : ${params.genome}
+Profile            : ${workflow.profile ?: 'default'}
 Sequencing mode    : ${params.paired_end ? 'Paired-end' : 'Single-end'}
 Per Sample parameters:
   - Min targets    : ${params.min_targets}

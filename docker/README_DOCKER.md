@@ -1,124 +1,165 @@
-# Docker Setup for RETrace2
-
-This guide explains how to run RETrace2 using Docker containers.
+# RETrace2 Docker Setup
 
 ## Quick Start
 
-### 1. Build the Custom Docker Image
+1. **Build the custom container:**
+   ```bash
+   cd docker
+   ./build_docker.sh
+   ```
 
-```bash
-# Make the build script executable
-chmod +x docker/build_docker.sh
+2. **Run with Docker profile:**
+   ```bash
+   nextflow run main.nf -profile docker [other parameters]
+   ```
 
-# Build the image (this may take 5-10 minutes)
-docker/build_docker.sh
-```
+## Important Limitations
 
-Alternatively, build manually:
-```bash
-docker build -t retrace2/python:latest -f docker/Dockerfile .
-```
+### S3/FUSE Filesystem Compatibility Issue
 
-### 2. Run the Pipeline with Docker
+**Docker has known compatibility issues with FUSE-based filesystems (including S3 mounts via mountpoint-s3).**
 
-```bash
-nextflow run main.nf -profile docker \
-  --samplesheet /path/to/samplesheet.csv \
-  --genome_base /path/to/genome_base \
-  --genome mm39 \
-  --output_dir results
-```
+If your data is stored on S3 mounts, you have two options:
 
-## How It Works
+1. **Copy data to local storage** (recommended for Docker):
+   ```bash
+   # Copy data from S3 mount to local directory
+   cp -r /mnt/your/data/path /local/data/path
+   
+   # Update your samplesheet to use local paths instead of S3 paths
+   # Example: change /mnt/data/sample1.fastq.gz to /local/data/path/sample1.fastq.gz
+   
+   # Then run pipeline with updated samplesheet
+   nextflow run main.nf -profile docker --samplesheet /path/to/updated_samplesheet.csv [other parameters]
+   ```
 
-### Architecture
-- **Public Images**: Most processes use pre-built images from biocontainers (e.g., FastQC, BWA, Trim Galore)
-- **Custom Image**: Python-based processes use our custom `retrace2/python:latest` image
-- **Automatic**: Nextflow handles pulling and running containers automatically
+2. **Use Singularity instead of Docker** (better S3 compatibility):
+   ```bash
+   # Note: Singularity profile not yet implemented
+   # Contact maintainers if Singularity support is needed
+   ```
 
-### Container Mapping
-| Process | Container |
-|---------|-----------|
-| FASTQC, MULTIQC | quay.io/biocontainers/fastqc, multiqc |
-| TRIM_GALORE | quay.io/biocontainers/trim-galore |
-| BWA_MEM | quay.io/biocontainers/bwa |
-| COUNT_TARGETS | quay.io/biocontainers/pysam |
-| METHYLPY | retrace2/python:latest |
-| Custom Python processes | retrace2/python:latest |
+## Container Details
 
-### What's in the Custom Image
-The `retrace2/python:latest` image includes:
-- Python 3.9 + scientific packages (matplotlib, seaborn, pandas, etc.)
-- Bioinformatics tools (pysam, biopython, ete3, scikit-bio)
-- System tools (bcftools, samtools, tabix)
-- **HipSTR** (compiled from source)
-
-## Running Options
-
-### Local Environment
-```bash
-# Activate your conda environment
-conda activate retrace2
-
-# Run without any profile (uses local tools)
-nextflow run main.nf --samplesheet samplesheet.csv [other params]
-```
-
-### Docker Profile
-```bash
-# No need to activate conda - containers provide all tools
-nextflow run main.nf -profile docker --samplesheet samplesheet.csv [other params]
-```
-
+- **Custom container**: `retrace2/python:latest` 
+- **Base image**: python:3.9-slim
+- **Key tools**: Python dependencies, HipSTR, Picard, PyQt5
+- **Public containers**: BWA, samtools, FastQC, etc. from biocontainers
 
 ## Volume Mounting
 
-When using Docker, ensure your data is accessible to containers:
+The Docker profile automatically mounts common directories:
+- `/home` - Home directories
+- `/opt` - Optional software
+- `/data` - Data directories  
+- `/shared` - Shared filesystems
 
+For custom mount points, use `--docker-runOptions`:
 ```bash
-# If your data is outside the project directory, you may need to mount volumes
 nextflow run main.nf -profile docker \
-  --samplesheet /data/samplesheet.csv \
-  --genome_base /references/genome_base \
-  -v /data:/data \
-  -v /references:/references
+  --docker-runOptions "-v /custom/path:/custom/path" \
+  [other parameters]
 ```
+
+## File Structure
+
+```
+docker/
+├── Dockerfile              # Custom container definition
+├── build_docker.sh         # Build script
+└── README_DOCKER.md        # This documentation
+```
+
+## Building Custom Container
+
+The custom container includes tools not available in standard biocontainers:
+
+### Included Tools
+- **HipSTR**: Microsatellite analysis
+- **Picard**: Java-based genomics tools  
+- **PyQt5**: GUI support for ete3 tree visualization
+- **methylpy**: Methylation analysis
+- **Python packages**: pysam, ete3, biopython, pandas, etc.
+
+### Build Process
+```bash
+cd docker
+docker build -t retrace2/python:latest .
+```
+
+### Build Options
+```bash
+# Build with different tag
+docker build -t my-retrace2:v1.0 .
+
+# Build with no cache (clean build)
+docker build --no-cache -t retrace2/python:latest .
+```
+
+## Container Registry
+
+Currently using local containers only. For production deployment:
+
+1. **Tag for registry:**
+   ```bash
+   docker tag retrace2/python:latest your-registry.com/retrace2/python:latest
+   ```
+
+2. **Push to registry:**
+   ```bash
+   docker push your-registry.com/retrace2/python:latest
+   ```
+
+3. **Update nextflow.config** to use registry images
+
+## Docker Hub Registry (Recommended)
+
+For AWS instances and production deployments, use Docker Hub registry to avoid rebuilding:
+
+### One-Time Setup
+```bash
+cd docker
+./build_docker.sh           # Build the image locally
+./setup_registry.sh         # Push to Docker Hub
+```
+
+This will:
+1. Guide you through Docker Hub setup
+2. Push your image to Docker Hub
+3. Show you how to update nextflow.config
+
+### Benefits
+- ✅ No rebuilding after AWS restarts
+- ✅ Automatic image pulling
+- ✅ Works across multiple machines
+- ✅ Version control for images
 
 ## Troubleshooting
 
-### Permission Issues
-If you encounter permission errors:
+### Common Issues
+
+1. **Permission errors**: Check user mapping in docker.runOptions
+2. **Mount failures**: Verify paths exist and are readable  
+3. **S3 mount errors**: Copy data locally or use Singularity
+4. **GUI errors**: PyQt5 should be properly configured with offscreen display
+5. **Image not found**: Use Docker Hub registry (see above) to avoid rebuilding
+
+### Debug Commands
+
 ```bash
-# The docker profile includes user mapping to fix ownership
-# This is already configured in nextflow.config
+# Test container functionality
+docker run --rm retrace2/python:latest python -c "import ete3; print('Success')"
+
+# Test file access
+docker run --rm -v /your/data/path:/data retrace2/python:latest ls /data
+
+# Interactive debugging
+docker run -it --rm retrace2/python:latest bash
 ```
 
-### Custom Image Updates
-To update the custom image with new dependencies:
-1. Modify `docker/Dockerfile`
-2. Rebuild: `docker/build_docker.sh`
-3. Optionally push to registry for sharing
+### Log Analysis
 
-### Registry Alternative
-If you can't build locally, you can pull a pre-built image:
+Check Nextflow logs for Docker-specific errors:
 ```bash
-docker pull retrace2/python:latest
-```
-
-## Benefits of Docker Approach
-
-✅ **Reproducible**: Same environment across machines  
-✅ **Portable**: Works on any system with Docker  
-✅ **Isolated**: No conflicts with system packages  
-✅ **Scalable**: Ready for cloud/cluster deployment  
-✅ **Maintainable**: Individual containers for different tools  
-
-## Comparison with Local Setup
-
-| Aspect | Local Conda | Docker |
-|--------|-------------|--------|
-| Setup | Manual conda env | Automatic containers |
-| Reproducibility | Environment-dependent | Fully reproducible |
-| Resource Usage | Lower overhead | Slight container overhead |
-| Debugging | Direct access | Container access needed |
-| Sharing | Requires env setup | Just needs Docker | 
+tail -f .nextflow.log | grep -i docker
+``` 
