@@ -161,7 +161,7 @@ An example samplesheet has been provided in [assets/samplesheet_msh2.csv](assets
 | `--output_prefix` | retrace2_analysis | Prefix for output files |
 | `--genome_base` | /path/to/reference/genome_base | Path to the reference genome base directory |
 | `--genome` | mm39 | Reference genome identifier |
-| `--target_bed` | /path/to/target_bed | BED file in HipSTR format. Use probe targets for enrichment experiments ([resources/targets](resources/targets)) or download pre-built references from [HipSTR-references](https://github.com/HipSTR-Tool/HipSTR-references/tree/master) |
+| `--target_bed` | /path/to/target_bed | BED file in HipSTR format with **1-based coordinates**. Use probe targets for enrichment experiments ([resources/targets](resources/targets)) or download pre-built references from [HipSTR-references](https://github.com/HipSTR-Tool/HipSTR-references/tree/master). See [Target BED Format Documentation](resources/targets/README.md) for detailed format specifications. |
 | `--hipstr_path` | HipSTR | Path to HipSTR executable. By default, looks for "HipSTR" in PATH |
 | `--run_methylation` | false | Whether to run methylation analysis |
 | `--run_bootstrap` | false | Whether to run bootstrap analysis |
