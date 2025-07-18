@@ -165,8 +165,8 @@ An example samplesheet has been provided in [assets/samplesheet_msh2.csv](assets
 | `--hipstr_path` | HipSTR | Path to HipSTR executable. By default, looks for "HipSTR" in PATH |
 | `--run_methylation` | false | Whether to run methylation analysis |
 | `--run_bootstrap` | false | Whether to run bootstrap analysis |
-| `--threads` | 30 | Number of threads for parallel processing |
-| `--memory` | 100.GB | Memory allocation for processes |
+| `--threads` | 30 | Number of threads per task for parallel processing |
+| `--memory` | 100.GB | Memory allocation per task |
 
 For a full list of parameters, run `nextflow run main.nf --help`.
 <br>
