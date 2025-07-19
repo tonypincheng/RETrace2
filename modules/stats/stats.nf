@@ -58,14 +58,11 @@ workflow STATS {
     COUNT_TARGETS(bam)
     
     // Prepare allc channel for stats generation
-    allc_files_ch = Channel.empty()
-    if (params.run_methylation) {
-        allc_files_ch = allc.map { it -> it[1] }.collect()
-    }
+    // Check if allc channel has data, not just the parameter
+    allc_files_ch = allc.map { it -> it[1] }.collect().ifEmpty([])
     
     // Generate statistics incorporating both MS counts and methylation data if available
-    // Use ifEmpty([]) to ensure the process runs even when allc_files_ch is empty
-    COMBINE_STATS(COUNT_TARGETS.out.ms_counts.collect(), allc_files_ch.ifEmpty([]))
+    COMBINE_STATS(COUNT_TARGETS.out.ms_counts.collect(), allc_files_ch)
 
     emit:
     sample_stats = COMBINE_STATS.out.sample_stats
