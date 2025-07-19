@@ -145,13 +145,7 @@ workflow {
         .splitCsv(header:true)
         .filter { row -> !row.sample_id.startsWith('#') && row.ms_fastq_1 }
         .map { row -> 
-            ms_fastq = file(row.ms_fastq_1)
-            
-            if (!ms_fastq.exists()) {
-                log.error "ERROR: Microsatellite FASTQ file does not exist: ${row.ms_fastq_1}"
-                exit 1
-            }
-
+            ms_fastq = file(row.ms_fastq_1, checkIfExists: true)
             tuple(row.sample_id, ms_fastq)
         }
         .set { ms_input_ch }
@@ -162,13 +156,7 @@ workflow {
             .splitCsv(header:true)
             .filter { row -> !row.sample_id.startsWith('#') && row.meth_fastq_1 }
             .map { row ->
-                meth_fastq = file(row.meth_fastq_1)
-                
-                if (!meth_fastq.exists()) {
-                    log.error "ERROR: Methylation FASTQ file does not exist: ${row.meth_fastq_1}"
-                    exit 1
-                }
-
+                meth_fastq = file(row.meth_fastq_1, checkIfExists: true)
                 tuple(row.sample_id, meth_fastq)
             }
             .set { methylation_input_ch }
