@@ -166,7 +166,7 @@ An example samplesheet has been provided in [assets/samplesheet_msh2.csv](assets
 | `--run_methylation` | false | Whether to run methylation analysis |
 | `--run_bootstrap` | false | Whether to run bootstrap analysis |
 | `--threads` | 4 | Number of threads per task for parallel processing |
-| `--memory` | 16.GB | Memory allocation per task |
+| `--memory` | 8.GB | Memory allocation per task |
 
 > **💡 Memory Allocation Tips:**
 > - **Too low**: Tasks may get killed (OOM errors) with large datasets
