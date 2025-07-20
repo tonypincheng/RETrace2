@@ -4,10 +4,10 @@
 ![Nextflow](https://img.shields.io/badge/nextflow%20DSL2-%E2%89%A525.04.6-23aa62.svg)
 ![Docker](https://img.shields.io/badge/docker-enabled-blue)
 ![Python](https://img.shields.io/badge/python-3.8%2B-blue)
-![License](https://img.shields.io/badge/license-MIT-green)
 ![Platform](https://img.shields.io/badge/platform-linux-lightgrey)
+![License](https://img.shields.io/badge/license-MIT-green)
 
-RETrace2 is a Nextflow-based bioinformatics pipeline for processing and analyzing sequencing data to reconstruct single-cell phylogenetic trees using somatic microsatellite mutations. It integrates quality control, alignment, microsatellite genotype calling, and tree reconstruction into a streamlined workflow.
+RETrace2 is a Nextflow bioinformatics pipeline for processing and analyzing sequencing data to reconstruct single-cell phylogenetic trees using somatic microsatellite mutations. It integrates quality control, alignment, microsatellite genotype calling, and tree reconstruction into a streamlined workflow.
 <br>
 
 <p align="center">
