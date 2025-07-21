@@ -1,4 +1,4 @@
-name: retrace2_test
+name: retrace2
 channels:
   - conda-forge
   - bioconda
