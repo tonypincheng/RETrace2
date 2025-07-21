@@ -19,6 +19,7 @@ RETrace2 is a Nextflow bioinformatics pipeline for processing and analyzing sequ
 - [Features](#features)
 - [Pipeline Structure](#pipeline-structure)
 - [Test Data](#test-data)
+- [Tutorial](#tutorial)
 - [Getting Started](#getting-started)
   - [Prerequisites](#prerequisites)
   - [Installation](#installation)
@@ -95,6 +96,12 @@ The repository includes small test datasets in the `data/` directory:
 - Sufficient data to test the pipeline's methylation analysis functionality
 
 For details about the test data, see [data/README.md](data/README.md).
+
+<br>
+
+## Tutorial
+
+See [notebooks/Tutorial.ipynb](notebooks/Tutorial.ipynb) for a step-by-step walkthrough using the test dataset.
 
 <br>
 
