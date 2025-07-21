@@ -246,14 +246,11 @@ nextflow run main.nf -profile docker
 
 The pipeline uses a public Docker image (`tonypincheng/retrace2-python:latest`) that includes all required tools. Docker will automatically pull the image when needed.
 
-**Notes:** 
-- Docker has compatibility issues with FUSE-based filesystems (S3 mounts). If your data is on S3 mounts, copy it to local storage first.
-
 For detailed Docker information, see [docker/README_DOCKER.md](docker/README_DOCKER.md).
 
 <br>
 
-### Standard (Local Installation)
+### Standard (Local Installation - Default)
 For users who prefer local installations or cannot use Docker.
 
 **Software Dependencies:**
