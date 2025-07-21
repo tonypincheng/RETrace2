@@ -46,7 +46,6 @@ RETrace2 is a Nextflow bioinformatics pipeline for processing and analyzing sequ
 
 - Optional analyses:
   - Tree bootstrapping
-  - Tree accuracy evaluation (with ground truth)
   - Methylation analysis for cell type inference
 
 - Current support:
@@ -67,8 +66,7 @@ RETrace2/
 │   ├── phylo/           # Phylogenetic tree reconstruction
 │   ├── bootstrap/       # Tree bootstrapping analysis
 │   ├── methylation/     # Methylation processing
-│   ├── infer_celltype/  # Infer cell type from methylation
-│   └── evaluation/      # Tree accuracy evaluation
+│   └── infer_celltype/  # Infer cell type from methylation
 ├── notebooks/           # Jupyter notebooks
 ├── resources/           # Probe target bed
 ├── scripts/             # Supporting scripts
@@ -155,27 +153,78 @@ An example samplesheet has been provided in [assets/samplesheet_msh2.csv](assets
 
 ### Parameters
 
+#### Required Parameters
+
 | Parameter | Default | Description |
 |-----------|---------|-------------|
-| `--samplesheet` | path/to/samplesheet | Path to the samplesheet CSV file (required) |
-| `--output_dir` | results | Path to the output directory |
-| `--output_prefix` | retrace2_analysis | Prefix for output files |
-| `--genome_base` | /path/to/reference/genome_base | Path to the reference genome base directory |
-| `--genome` | mm39 | Reference genome identifier |
-| `--target_bed` | /path/to/target_bed | BED file in HipSTR format with **1-based coordinates**. Use probe targets for enrichment experiments ([resources/targets](resources/targets)) or download pre-built references from [HipSTR-references](https://github.com/HipSTR-Tool/HipSTR-references/tree/master). See [Target BED Format Documentation](resources/targets/README.md) for detailed format specifications. |
-| `--hipstr_path` | HipSTR | Path to HipSTR executable. By default, looks for "HipSTR" in PATH |
-| `--run_methylation` | false | Whether to run methylation analysis |
-| `--run_bootstrap` | false | Whether to run bootstrap analysis |
-| `--threads` | 4 | Number of threads per task for parallel processing |
-| `--memory` | 16.GB | Memory allocation per task |
+| `--samplesheet` | - | CSV file specifying samples and their details (see example in assets/samplesheet.csv) |
+| `--genome_base` | - | Directory containing reference genomes (see [Reference Genome Configuration](#reference-genome-configuration) for details) |
+| `--genome` | mm39 | Reference genome: 'mm39' or 'hg38' |
+| `--target_bed` | - | BED file in HipSTR format with **1-based coordinates**. Use probe targets for enrichment experiments ([resources/targets](resources/targets)) or download pre-built references from [HipSTR-references](https://github.com/HipSTR-Tool/HipSTR-references/tree/master). See [Target BED Format Documentation](resources/targets/README.md) for detailed format specifications. |
 
-For a full list of parameters, run `nextflow run main.nf --help`.
+#### Optional Parameters
+
+**General Output Settings:**
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `--output_dir` | results | Directory for output files |
+| `--output_prefix` | retrace2_analysis | Prefix for output files |
+| `--threads` | 4 | Number of CPU threads per task |
+| `--memory` | 16.GB | Memory allocation per task |
 
 > **💡 Memory Allocation Tips:**
 > - **Too low**: Tasks may get killed (OOM errors) with large datasets
 > - **Too high**: Reduces parallelism and resource efficiency (fewer tasks can run simultaneously)
 > - **Optimal**: Set based on your data size - monitor actual usage and adjust accordingly
 > - **Rule of thumb**: Start with default, increase if you see OOM errors, decrease if you have excess unused memory
+
+**Reference Genome Settings:**
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `--bwa_index_path` | Auto-detected | Path to BWA index. If not specified, uses `genome_base/genome/bwa-index/genome.fa` |
+| `--ref_fasta` | Auto-detected | Path to reference FASTA. If not specified, uses `genome_base/genome/raw_fasta/genome.fa` |
+
+**Sample Quality Parameters:**
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `--min_targets` | 100 | Minimum number of microsatellite targets per sample |
+| `--min_cpgs` | 0 | Minimum number of CpGs per sample for methylation analysis |
+
+**HipSTR Parameters:**
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `--hipstr_path` | HipSTR | Path to HipSTR executable. If not specified, uses "HipSTR" from PATH |
+| `--min_qual` | 0.9 | Minimum quality score per target for HipSTR |
+| `--min_reads` | 10 | Minimum number of reads per target per sample for HipSTR. Also used in STATS module to count targets with min coverage |
+| `--max_stutter` | 1 | Maximum stutter ratio per target for HipSTR |
+| `--by_chrom` | true | Run HipSTR by chromosome in parallel |
+
+**Phylogenetic Parameters:**
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `--dist_metric` | minComp_EqorNot | Distance metric for phylogenetic tree construction |
+| `--outgroup` | Midpoint | Outgroup for tree rooting |
+| `--color_background` | true | Apply color to background instead of node circles |
+| `--circular_tree` | false | Render phylogenetic tree in circular layout |
+
+**Bootstrap Analysis:**
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `--run_bootstrap` | false | Run bootstrap analysis |
+| `--bootstrap_iterations` | 100 | Number of bootstrap iterations |
+
+**Methylation Analysis:**
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `--run_methylation` | false | Run methylation analysis |
+| `--methylpy_ref` | Auto-detected | Path prefix for methylpy reference files. If not specified, uses `genome_base/genome/methylpl-ref/genome` |
+| `--min_reads_per_site` | 1 | Minimum number of reads required per cytosine site |
+| `--min_shared_sites` | 100 | Minimum number of shared sites required for comparison |
+| `--celltype_ref_dir` | - | Directory containing reference cell type files (required for cell type inference) |
+| `--celltype_ref_pattern` | *.tsv.gz | Pattern to match files in celltype_ref_dir |
+| `--zscore_threshold` | -1.1 | Z-score threshold for cell type inference |
+
+For a complete and up-to-date list of parameters, run `nextflow run main.nf --help`.
 
 <br>
 <br>
