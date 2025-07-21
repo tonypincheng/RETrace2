@@ -157,7 +157,7 @@ An example samplesheet has been provided in [assets/samplesheet_msh2.csv](assets
 
 | Parameter | Default | Description |
 |-----------|---------|-------------|
-| `--samplesheet` | None | Path to the samplesheet CSV file (required) |
+| `--samplesheet` | path/to/samplesheet | Path to the samplesheet CSV file (required) |
 | `--output_dir` | results | Path to the output directory |
 | `--output_prefix` | retrace2_analysis | Prefix for output files |
 | `--genome_base` | /path/to/reference/genome_base | Path to the reference genome base directory |

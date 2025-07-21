@@ -16,7 +16,7 @@ process COUNT_TARGETS {
     """
     python ${baseDir}/modules/stats/count_targets.py \
                 --bam ${bam_reads} \
-                --target_bed ${params.target_bed} \
+                --target_bed ${params.target_bed_resolved} \
                 --output ${sample_id}_ms_counts.txt
     """
 }

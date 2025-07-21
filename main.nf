@@ -89,6 +89,14 @@ if (!file(params.genome_base).exists()) {
     exit 1
 }
 
+if (!file(params.target_bed).exists()) {
+    log.error "Target BED file '${params.target_bed}' does not exist or is not accessible!"
+    exit 1
+}
+
+// Resolve target_bed to absolute path to ensure modules can access it
+params.target_bed_resolved = file(params.target_bed).toString()
+
 
 // Log pipeline info
 log.info"""

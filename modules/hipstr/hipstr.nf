@@ -64,7 +64,7 @@ process HIPSTR_PER_CHROM {
     ${hipstr_path} \\
         --bams ${bam_list} \\
         --fasta ${fasta_path} \\
-        --regions ${params.target_bed} \\
+        --regions ${params.target_bed_resolved} \\
         --str-vcf ${params.output_prefix}.${chrom}.vcf.gz \\
         --log ${params.output_prefix}.${chrom}.log \\
         ${use_unpaired} \\
@@ -140,7 +140,7 @@ process HIPSTR_CALLING {
     ${hipstr_path} \\
         --bams ${bam_list} \\
         --fasta ${fasta_path} \\
-        --regions ${params.target_bed} \\
+        --regions ${params.target_bed_resolved} \\
         --str-vcf ${params.output_prefix}.vcf.gz \\
         --log ${params.output_prefix}.log \\
         ${use_unpaired} \\
@@ -167,7 +167,7 @@ process PARSE_VCF {
     """
     python ${baseDir}/modules/hipstr/parse_vcf.py \
         --vcf ${vcf_file} \
-        --target_bed ${params.target_bed} \
+        --target_bed ${params.target_bed_resolved} \
         --output_pkl ${params.output_prefix}.alleleDict.pkl \
         --output_samples ${params.output_prefix}.sample_list.txt \
         --min_qual ${params.min_qual} \
@@ -194,7 +194,7 @@ workflow HIPSTR {
     
     if (params.by_chrom) {
         // Extract unique chromosomes from BED file
-        chroms_ch = Channel.fromPath(params.target_bed)
+        chroms_ch = Channel.fromPath(params.target_bed_resolved)
             .splitCsv(sep: '\t')
             .map { row -> row[0] }
             .unique()
