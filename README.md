@@ -246,12 +246,6 @@ nextflow run main.nf -profile docker
 
 The pipeline uses a public Docker image (`tonypincheng/retrace2-python:latest`) that includes all required tools. Docker will automatically pull the image when needed.
 
-**Benefits:**
-- ✅ **Zero dependency management** - everything included
-- ✅ **Works on any system** with Docker installed
-- ✅ **Perfect for AWS/cloud** - no rebuilding after restarts
-- ✅ **Reproducible results** across different machines
-
 **Notes:** 
 - Docker has compatibility issues with FUSE-based filesystems (S3 mounts). If your data is on S3 mounts, copy it to local storage first.
 
@@ -261,14 +255,6 @@ For detailed Docker information, see [docker/README_DOCKER.md](docker/README_DOC
 
 ### Standard (Local Installation)
 For users who prefer local installations or cannot use Docker.
-
-**Prerequisites:**
-
-**System Requirements:**
-- **OS**: Linux (required for optimal performance)
-- **Memory**: 16GB+ RAM recommended (32GB+ for large datasets)  
-- **Storage**: 50GB+ free disk space
-- **Compiler**: GCC/build tools for HipSTR compilation
 
 **Software Dependencies:**
 - nextflow=25.04.6
@@ -306,12 +292,6 @@ conda activate retrace2
 git clone https://github.com/HipSTR-Tool/HipSTR
 cd HipSTR && make
 # Add HipSTR to PATH or use --hipstr_path parameter
-```
-
-**Usage:**
-```bash
-# Run using locally installed tools (default)
-nextflow run main.nf
 ```
 
 <br>
@@ -359,10 +339,7 @@ nextflow run main.nf --run_methylation \
                     --ref_fasta /path/to/reference.fa
 ```
 
-This option overrides the standard directory structure and is useful for:
-- Custom or non-standard reference genomes
-- References located in different directories
-- Quick testing with specific reference files
+This option overrides the standard directory structure.
 
 For methylation analysis, the `--methylpy_ref` parameter specifies the prefix path for both forward and reverse methylation references. The pipeline will automatically append "_f" and "_r" to this prefix to locate the forward and reverse reference files, respectively.
 <br><br>
