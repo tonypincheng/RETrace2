@@ -180,6 +180,12 @@ RETrace2 supports two execution environments. **Docker is the recommended approa
 ### Docker (Recommended) 🐳
 **✅ Easiest setup - no dependency management required!**
 
+**System Requirements:**
+- **OS**: Linux (tested on Ubuntu/CentOS/AWS EC2)
+- **Memory**: 16GB+ RAM recommended (32GB+ for large datasets)
+- **Storage**: 50GB+ free disk space
+- **Docker**: Version 20.10+ ([install here](https://docs.docker.com/get-docker/))
+
 ```bash
 # No setup required! Just run with Docker profile
 nextflow run main.nf -profile docker
@@ -195,7 +201,6 @@ The pipeline uses a public Docker image (`tonypincheng/retrace2-python:latest`) 
 
 **Notes:** 
 - Docker has compatibility issues with FUSE-based filesystems (S3 mounts). If your data is on S3 mounts, copy it to local storage first.
-- Install Docker from the [official website](https://docs.docker.com/get-docker/) if not already installed.
 
 For detailed Docker information, see [docker/README_DOCKER.md](docker/README_DOCKER.md).
 
@@ -205,7 +210,15 @@ For detailed Docker information, see [docker/README_DOCKER.md](docker/README_DOC
 For users who prefer local installations or cannot use Docker.
 
 **Prerequisites:**
-- nextflow=25.04.3
+
+**System Requirements:**
+- **OS**: Linux (required for optimal performance)
+- **Memory**: 16GB+ RAM recommended (32GB+ for large datasets)  
+- **Storage**: 50GB+ free disk space
+- **Compiler**: GCC/build tools for HipSTR compilation
+
+**Software Dependencies:**
+- nextflow=25.04.6
 - fastqc=0.12.1
 - multiqc=1.28
 - python=3.9
@@ -214,14 +227,20 @@ For users who prefer local installations or cannot use Docker.
 - bwa=0.7.19
 - pysam=0.22.1
 - samtools=1.21
+- bcftools=1.21
+- picard=3.1.1
+- tabix=1.21
+- bowtie2=2.5.4
+- **HipSTR** (manual compilation required - [see instructions](https://github.com/HipSTR-Tool/HipSTR))
+
+**Python Packages:**
 - matplotlib=3.9.4
 - seaborn=0.13.2
-- bcftools=1.21
-- HipSTR=0.6.2 (manual installation required)
 - more-itertools=10.7.0
 - scikit-bio=0.6.3
 - ete3=3.1.3
 - biopython=1.85
+- pandas, numpy, tqdm, psutil
 
 **Installation:**
 
@@ -241,8 +260,6 @@ cd HipSTR && make
 # Run using locally installed tools (default)
 nextflow run main.nf
 ```
-
-For more information about HipSTR installation, visit [HipSTR GitHub](https://github.com/HipSTR-Tool/HipSTR).
 
 <br>
 
