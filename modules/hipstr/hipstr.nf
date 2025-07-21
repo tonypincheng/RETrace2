@@ -3,6 +3,8 @@
 nextflow.enable.dsl=2
 
 process FILTER_BAMS_BY_STATS {
+    container "tonypincheng/retrace2-python:latest"
+    
     input:
     tuple val(sample_id), path(bam_file), path(bam_index)
     path(sample_stats)
@@ -29,6 +31,7 @@ process FILTER_BAMS_BY_STATS {
 
 process HIPSTR_PER_CHROM {
     tag "$chrom"
+    container "tonypincheng/retrace2-python:latest"
     
     input:
     val(chrom)
@@ -61,7 +64,7 @@ process HIPSTR_PER_CHROM {
     ${hipstr_path} \\
         --bams ${bam_list} \\
         --fasta ${fasta_path} \\
-        --regions ${params.target_bed} \\
+        --regions ${params.target_bed_resolved} \\
         --str-vcf ${params.output_prefix}.${chrom}.vcf.gz \\
         --log ${params.output_prefix}.${chrom}.log \\
         ${use_unpaired} \\
@@ -76,6 +79,7 @@ process HIPSTR_PER_CHROM {
 
 process MERGE_VCFS {
     publishDir "${params.output_dir}/hipstr", mode: 'copy'
+    container "tonypincheng/retrace2-python:latest"
     
     input:
     path(vcfs)
@@ -104,6 +108,7 @@ process MERGE_VCFS {
 
 process HIPSTR_CALLING {
     publishDir "${params.output_dir}/hipstr", mode: 'copy'
+    container "tonypincheng/retrace2-python:latest"
     
     input:
     path(bam_files)
@@ -135,7 +140,7 @@ process HIPSTR_CALLING {
     ${hipstr_path} \\
         --bams ${bam_list} \\
         --fasta ${fasta_path} \\
-        --regions ${params.target_bed} \\
+        --regions ${params.target_bed_resolved} \\
         --str-vcf ${params.output_prefix}.vcf.gz \\
         --log ${params.output_prefix}.log \\
         ${use_unpaired} \\
@@ -149,6 +154,7 @@ process HIPSTR_CALLING {
 
 process PARSE_VCF {
     publishDir "${params.output_dir}/hipstr", mode: 'copy'
+    container "tonypincheng/retrace2-python:latest"
     
     input:
     path(vcf_file)
@@ -161,7 +167,7 @@ process PARSE_VCF {
     """
     python ${baseDir}/modules/hipstr/parse_vcf.py \
         --vcf ${vcf_file} \
-        --target_bed ${params.target_bed} \
+        --target_bed ${params.target_bed_resolved} \
         --output_pkl ${params.output_prefix}.alleleDict.pkl \
         --output_samples ${params.output_prefix}.sample_list.txt \
         --min_qual ${params.min_qual} \
@@ -188,7 +194,7 @@ workflow HIPSTR {
     
     if (params.by_chrom) {
         // Extract unique chromosomes from BED file
-        chroms_ch = Channel.fromPath(params.target_bed)
+        chroms_ch = Channel.fromPath(params.target_bed_resolved)
             .splitCsv(sep: '\t')
             .map { row -> row[0] }
             .unique()

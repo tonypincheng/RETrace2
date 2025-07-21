@@ -1,17 +1,25 @@
+
 # RETrace2
 
-RETrace2 is a Nextflow-based bioinformatics pipeline for processing and analyzing sequencing data to reconstruct single-cell phylogenetic trees using somatic microsatellite mutations. It integrates quality control, alignment, microsatellite genotype calling, and tree reconstruction into a streamlined workflow.
+![Nextflow](https://img.shields.io/badge/nextflow%20DSL2-%E2%89%A525.04.6-23aa62.svg)
+![Docker](https://img.shields.io/badge/docker-enabled-blue)
+![Python](https://img.shields.io/badge/python-3.8%2B-blue)
+![Platform](https://img.shields.io/badge/platform-linux-lightgrey)
+![License](https://img.shields.io/badge/license-MIT-green)
+
+RETrace2 is a dual-omic Nextflow bioinformatics pipeline for reconstructing single-cell phylogenetic trees using somatic microsatellite mutations and inferring cell type using methylation patterns. The pipeline integrates quality control, alignment, microsatellite genotype calling, distance matrix calculation, and tree reconstruction into a streamlined workflow.
 <br>
 
 <p align="center">
   <img src="assets/workflow.png" width="800" alt="RETrace2 Workflow">
 </p>
-<sup><sub><p align="left"><i>This workflow diagram provides a simplified overview of the RETrace2 pipeline. See the documentation below for detailed steps and modules.</i></p></sub></sup>
+<sup><sub><p align="left"><i>This workflow diagram provides a simplified overview of the RETrace2 pipeline. See the documentation below for details.</i></p></sub></sup>
 
 ## Table of Contents
 - [Features](#features)
 - [Pipeline Structure](#pipeline-structure)
 - [Test Data](#test-data)
+- [Tutorial](#tutorial)
 - [Getting Started](#getting-started)
   - [Prerequisites](#prerequisites)
   - [Installation](#installation)
@@ -28,19 +36,6 @@ RETrace2 is a Nextflow-based bioinformatics pipeline for processing and analyzin
 
 <br>
 
-> ⚠️ **Under Active Development** ⚠️
-
-> This pipeline is currently under development. Features and documentation may change.
-### Implementation Progress
-- [x] Read trimming and alignment
-- [x] HipSTR microsatellite calling
-- [x] Phylogenetic tree reconstruction
-- [x] Target-based bootstrapping
-- [x] Methylation processing
-- [x] Methylation infer cell type
-- [ ] Docker containerization
-<br>
-
 ## Features
 
 - Core pipeline:
@@ -51,7 +46,6 @@ RETrace2 is a Nextflow-based bioinformatics pipeline for processing and analyzin
 
 - Optional analyses:
   - Tree bootstrapping
-  - Tree accuracy evaluation (with ground truth)
   - Methylation analysis for cell type inference
 
 - Current support:
@@ -72,8 +66,7 @@ RETrace2/
 │   ├── phylo/           # Phylogenetic tree reconstruction
 │   ├── bootstrap/       # Tree bootstrapping analysis
 │   ├── methylation/     # Methylation processing
-│   ├── infer_celltype/  # Infer cell type from methylation
-│   └── evaluation/      # Tree accuracy evaluation
+│   └── infer_celltype/  # Infer cell type from methylation
 ├── notebooks/           # Jupyter notebooks
 ├── resources/           # Probe target bed
 ├── scripts/             # Supporting scripts
@@ -91,16 +84,19 @@ The repository includes small test datasets in the `data/` directory:
 - 6 FASTQ files with ~100,000 reads each
 - HCT116 cell line clones from a cell culture tree model
 - 12k probe set targeting homopolymers (10-14bp repeat lengths)
-- Includes ground truth data for validation
-- Sufficient data to test the pipeline's basic functionality and ground truth validation
 
 ### MSH2 Mouse Data
 - 6 FASTQ files with ~400,000 reads for microsatellite libraries and ~100,000 reads for methylation libraries
 - Includes both microsatellite and methylation libraries
 - Designed for testing dual-omic pipeline capabilities
-- Sufficient data to test the pipeline's methylation analysis functionality
 
 For details about the test data, see [data/README.md](data/README.md).
+
+<br>
+
+## Tutorial
+
+See [notebooks/Tutorial.ipynb](notebooks/Tutorial.ipynb) for a step-by-step walkthrough using the test dataset.
 
 <br>
 
@@ -114,11 +110,20 @@ cd retrace2
 
 ### Usage
 
-The typical command for running the pipeline is as follows:
-
+**Recommended (Docker):**
+```bash
+nextflow run main.nf -profile docker \
+                     --samplesheet path/to/samplesheet.csv \
+                     --output_dir results \
+                     --genome_base /path/to/genome_base \
+                     --genome mm39 \
+                     --target_bed path/to/target_bed
 ```
-nextflow run main.nf --samplesheet path/to/samplesheet.csv 
-                     --output_dir results
+
+**Alternative (Local installation):**
+```bash
+nextflow run main.nf --samplesheet path/to/samplesheet.csv \
+                     --output_dir results \
                      --genome_base /path/to/genome_base \
                      --genome mm39 \
                      --target_bed path/to/target_bed
@@ -145,30 +150,111 @@ An example samplesheet has been provided in [assets/samplesheet_msh2.csv](assets
 
 ### Parameters
 
+#### Required Parameters
+
 | Parameter | Default | Description |
 |-----------|---------|-------------|
-| `--samplesheet` | None | Path to the samplesheet CSV file (required) |
-| `--output_dir` | results | Path to the output directory |
-| `--output_prefix` | retrace2_analysis | Prefix for output files |
-| `--genome_base` | /path/to/reference/genome_base | Path to the reference genome base directory |
-| `--genome` | mm39 | Reference genome identifier |
-| `--target_bed` | /path/to/target_bed | BED file in HipSTR format. Use probe targets for enrichment experiments ([resources/targets](resources/targets)) or download pre-built references from [HipSTR-references](https://github.com/HipSTR-Tool/HipSTR-references/tree/master) |
-| `--hipstr_path` | HipSTR | Path to HipSTR executable. By default, looks for "HipSTR" in PATH |
-| `--run_methylation` | false | Whether to run methylation analysis |
-| `--run_bootstrap` | false | Whether to run bootstrap analysis |
-| `--threads` | 30 | Number of threads for parallel processing |
-| `--memory` | 100.GB | Memory allocation for processes |
+| `--samplesheet` | - | CSV file specifying samples and their details (see example in assets/samplesheet.csv) |
+| `--genome_base` | - | Directory containing reference genomes (see [Reference Genome Configuration](#reference-genome-configuration) for details) |
+| `--genome` | mm39 | Reference genome: 'mm39' or 'hg38' |
+| `--target_bed` | - | BED file in HipSTR format with **1-based coordinates**. Use probe targets for enrichment experiments ([resources/targets](resources/targets)) or download pre-built references from [HipSTR-references](https://github.com/HipSTR-Tool/HipSTR-references/tree/master). See [Target BED Format Documentation](resources/targets/README.md) for detailed format specifications. |
 
-For a full list of parameters, run `nextflow run main.nf --help`.
+#### Optional Parameters
+
+**General Output Settings:**
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `--output_dir` | results | Directory for output files |
+| `--output_prefix` | retrace2_analysis | Prefix for output files |
+| `--threads` | 4 | Number of CPU threads per task |
+| `--memory` | 16.GB | Memory allocation per task |
+
+> **💡 Memory Allocation Tips:**
+> - **Too low**: Tasks may get killed (OOM errors) with large datasets
+> - **Too high**: Reduces parallelism and resource efficiency (fewer tasks can run simultaneously)
+> - **Optimal**: Set based on your data size - monitor actual usage and adjust accordingly
+> - **Rule of thumb**: Start with default, increase if you see OOM errors, decrease if you have excess unused memory
+
+**Reference Genome Settings:**
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `--bwa_index_path` | Auto-detected | Path to BWA index. If not specified, uses `genome_base/genome/bwa-index/genome.fa` |
+| `--ref_fasta` | Auto-detected | Path to reference FASTA. If not specified, uses `genome_base/genome/raw_fasta/genome.fa` |
+
+**Sample Quality Parameters:**
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `--min_targets` | 100 | Minimum number of microsatellite targets per sample |
+| `--min_cpgs` | 0 | Minimum number of CpGs per sample for methylation analysis |
+
+**HipSTR Parameters:**
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `--hipstr_path` | HipSTR | Path to HipSTR executable. If not specified, uses "HipSTR" from PATH |
+| `--min_qual` | 0.9 | Minimum quality score per target for HipSTR |
+| `--min_reads` | 10 | Minimum number of reads per target per sample for HipSTR. Also used in STATS module to count targets with min coverage |
+| `--max_stutter` | 1 | Maximum stutter ratio per target for HipSTR |
+| `--by_chrom` | true | Run HipSTR by chromosome in parallel |
+
+**Phylogenetic Parameters:**
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `--dist_metric` | minComp_EqorNot | Distance metric for phylogenetic tree construction |
+| `--outgroup` | Midpoint | Outgroup for tree rooting |
+| `--color_background` | true | Apply color to background instead of node circles |
+| `--circular_tree` | false | Render phylogenetic tree in circular layout |
+
+**Bootstrap Analysis:**
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `--run_bootstrap` | false | Run bootstrap analysis |
+| `--bootstrap_iterations` | 100 | Number of bootstrap iterations |
+
+**Methylation Analysis:**
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `--run_methylation` | false | Run methylation analysis |
+| `--methylpy_ref` | Auto-detected | Path prefix for methylpy reference files. If not specified, uses `genome_base/genome/methylpl-ref/genome` |
+| `--min_reads_per_site` | 1 | Minimum number of reads required per cytosine site |
+| `--min_shared_sites` | 100 | Minimum number of shared sites required for comparison |
+| `--celltype_ref_dir` | - | Directory containing reference cell type files (required for cell type inference) |
+| `--celltype_ref_pattern` | *.tsv.gz | Pattern to match files in celltype_ref_dir |
+| `--zscore_threshold` | -1.2 | Z-score threshold for cell type inference |
+
+For a complete and up-to-date list of parameters, run `nextflow run main.nf --help`.
+
 <br>
 <br>
 
 
 ## Environments
-RETrace2 supports multiple execution environments through Nextflow profiles.
+RETrace2 supports two execution environments. **Docker is the recommended approach** for most users.
 
-### Prerequisites
-- nextflow=25.04.3
+### Docker (Recommended) 🐳
+**✅ Easiest setup - no dependency management required!**
+
+**System Requirements:**
+- **OS**: Linux (tested on Ubuntu/CentOS/AWS EC2)
+- **Memory**: 16GB+ RAM recommended (32GB+ for large datasets)
+- **Storage**: 50GB+ free disk space
+- **Docker**: Version 20.10+ ([install here](https://docs.docker.com/get-docker/))
+
+```bash
+# No setup required! Just run with Docker profile
+nextflow run main.nf -profile docker
+```
+
+The pipeline uses a public Docker image (`tonypincheng/retrace2-python:latest`) that includes all required tools. Docker will automatically pull the image when needed.
+
+For detailed Docker information, see [docker/README_DOCKER.md](docker/README_DOCKER.md).
+
+<br>
+
+### Standard (Local Installation - Default)
+For users who prefer local installations or cannot use Docker.
+
+**Software Dependencies:**
+- nextflow=25.04.6
 - fastqc=0.12.1
 - multiqc=1.28
 - python=3.9
@@ -177,72 +263,34 @@ RETrace2 supports multiple execution environments through Nextflow profiles.
 - bwa=0.7.19
 - pysam=0.22.1
 - samtools=1.21
+- bcftools=1.21
+- picard=3.1.1
+- tabix=1.21
+- bowtie2=2.5.4
+- **HipSTR** (manual compilation required - [see instructions](https://github.com/HipSTR-Tool/HipSTR))
+
+**Python Packages:**
 - matplotlib=3.9.4
 - seaborn=0.13.2
-- bcftools=1.21
-- HipSTR=0.6.2 (instructions below)
 - more-itertools=10.7.0
 - scikit-bio=0.6.3
 - ete3=3.1.3
 - biopython=1.85
+- pandas, numpy, tqdm, psutil
 
-> **Note:** You can also use Docker or Conda (see below) to handle dependencies automatically.
-<br>
-
-### Standard (Default)
-By default, the pipeline runs using your system's native tools without Docker or Conda.
+**Installation:**
 
 ```bash
-# This runs using your locally installed packages
-nextflow run main.nf
-```
-
-You can install the required packages from the environment.yml file:
-
-```bash
-# Install directly from the environment.yml file
+# Install most dependencies via conda
 conda env create -f environment.yml
-
-# Activate the environment
 conda activate retrace2
-```
 
-HipSTR is not available in conda repositories and must be installed from source:
-
-```bash
-# Clone the HipSTR repository
+# HipSTR must be installed manually from source
 git clone https://github.com/HipSTR-Tool/HipSTR
-cd HipSTR
-
-# Build HipSTR using Make
-make
-
-```
-Add the HipSTR executable to your PATH or specify full path using `--hipstr_path`. 
-
-For more information, visit [HipSTR](https://github.com/HipSTR-Tool/HipSTR).
-
-
-### Docker 
-> ⚠️ **Under Active Development** ⚠️
-
-To use Docker containers for all tools:
-
-```bash
-nextflow run main.nf -profile docker
+cd HipSTR && make
+# Add HipSTR to PATH or use --hipstr_path parameter
 ```
 
-If you don't have Docker installed, get it from the [official website](https://docs.docker.com/get-docker/).
-
-### Conda
-Alternatively, you can use Conda to automatically create environments with required dependencies:
-
-```bash
-nextflow run main.nf -profile conda
-```
-
-This will automatically create and manage Conda environments based on the requirements in `environment.yml`.
-<br>
 <br>
 
 ## Reference Genome Configuration
@@ -288,10 +336,7 @@ nextflow run main.nf --run_methylation \
                     --ref_fasta /path/to/reference.fa
 ```
 
-This option overrides the standard directory structure and is useful for:
-- Custom or non-standard reference genomes
-- References located in different directories
-- Quick testing with specific reference files
+This option overrides the standard directory structure.
 
 For methylation analysis, the `--methylpy_ref` parameter specifies the prefix path for both forward and reverse methylation references. The pipeline will automatically append "_f" and "_r" to this prefix to locate the forward and reverse reference files, respectively.
 <br><br>

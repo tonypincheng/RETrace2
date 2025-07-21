@@ -6,7 +6,6 @@ nextflow.enable.dsl=2
 process FASTQC {
     publishDir "${params.output_dir}/mapping/fastqc", mode: 'copy'
     container "quay.io/biocontainers/fastqc:0.12.1--hdfd78af_0"
-    conda "bioconda::fastqc=0.12.1"
     
     input:
     tuple val(sample_id), path(reads)
@@ -24,7 +23,6 @@ process FASTQC {
 process MULTIQC {
     publishDir "${params.output_dir}/mapping/fastqc", mode: 'copy'
     container "quay.io/biocontainers/multiqc:1.28--pyhdfd78af_0"
-    conda "bioconda::multiqc=1.28"
    
     input:
     path('fastqc/*')
@@ -41,8 +39,7 @@ process MULTIQC {
 
 process TRIM_GALORE {
     publishDir "${params.output_dir}/mapping/trimmed", mode: 'symlink'
-    container "community.wave.seqera.io/library/trim-galore:0.6.10--1bf8ca4e1967cd18"
-    conda "bioconda::trim-galore=0.6.10"
+    container "quay.io/biocontainers/trim-galore:0.6.10--hdfd78af_0"
     
     input:
     tuple val(sample_id), path(reads)
@@ -66,8 +63,7 @@ process TRIM_GALORE {
 
 process BWA_MEM {
     publishDir "${params.output_dir}/mapping/bam", mode: 'copy'
-    container "quay.io/biocontainers/bwa:0.7.19--h577a1d6_0"
-    conda "bioconda::bwa=0.7.19 bioconda::samtools=1.21"
+    container "quay.io/biocontainers/mulled-v2-fe8faa35dbf6dc65a0f7f5d4ea12e31a79f73e40:219b6c272b25e7e642ae3ff0bf0c5c81a5135ab4-0"
 
     input:
     tuple val(sample_id), path(trimmed_reads)

@@ -4,6 +4,7 @@ nextflow.enable.dsl=2
 
 process BUILD_TREE {
     publishDir "${params.output_dir}/phylo", mode: 'copy'
+    container "tonypincheng/retrace2-python:latest"
     
     input:
     path(alleleDict)
@@ -30,6 +31,7 @@ process BUILD_TREE {
 
 process VIEW_PHYLO {
     publishDir "${params.output_dir}/phylo", mode: 'copy'
+    container "tonypincheng/retrace2-python:latest"
     
     input:
     path(samplesheet)

@@ -22,9 +22,9 @@ def helpMessage() {
     Optional arguments:
       --output_dir      Directory for output files (default: ${params.output_dir})
       --output_prefix   Prefix for output files (default: ${params.output_prefix})
-      --threads         Number of CPU threads to use (default: ${params.threads})
-      --memory          Memory to allocate for processes (default: ${params.memory})
-      --paired_end      Specify if data is paired-end sequencing (default: ${params.paired_end})
+      --threads         Number of CPU threads per task (default: ${params.threads})
+      --memory          Memory to allocate per task (default: ${params.memory})
+      --paired_end      Specify if data is paired-end sequencing (default: ${params.paired_end}) [NOTE: Feature not fully implemented]
 
       --bwa_index_path  Path to BWA index [optional]. If not specified, will use ${params.genome_base}/${params.genome}/bwa-index/${params.genome}.fa
       --ref_fasta       Path to reference FASTA [optional]. If not specified, will use ${params.genome_base}/${params.genome}/raw_fasta/${params.genome}.fa
@@ -50,10 +50,6 @@ def helpMessage() {
     Optional analyses:
       --run_bootstrap   Run bootstrap analysis (default: ${params.run_bootstrap})
       --bootstrap_iterations Number of bootstrap iterations (default: ${params.bootstrap_iterations})
-      
-      --run_evaluation  Run evaluation (requires ground truth) (default: ${params.run_evaluation})
-      --ground_truth    Path to ground truth data (default: ${params.ground_truth})
-      
       --run_methylation Run methylation analysis (default: ${params.run_methylation})
       --methylpy_ref    Path prefix for methylpy reference files [optional]. If not specified, will use ${params.genome_base}/${params.genome}/methylpl-ref/${params.genome}      
       --min_reads_per_site Minimum number of reads required per cytosine site (default: 1)
@@ -89,6 +85,14 @@ if (!file(params.genome_base).exists()) {
     exit 1
 }
 
+if (!file(params.target_bed).exists()) {
+    log.error "Target BED file '${params.target_bed}' does not exist or is not accessible!"
+    exit 1
+}
+
+// Resolve target_bed to absolute path to ensure modules can access it
+params.target_bed_resolved = file(params.target_bed).toString()
+
 
 // Log pipeline info
 log.info"""
@@ -97,10 +101,11 @@ log.info"""
 ===========================================
 Samplesheet        : ${params.samplesheet}
 Output directory   : ${params.output_dir}
+Reference genome   : ${params.genome}
+Profile            : ${workflow.profile ?: 'default'}
+Sequencing mode    : ${params.paired_end ? 'Paired-end' : 'Single-end'}
 Threads            : ${params.threads}
 Memory             : ${params.memory}
-Reference genome   : ${params.genome}
-Sequencing mode    : ${params.paired_end ? 'Paired-end' : 'Single-end'}
 Per Sample parameters:
   - Min targets    : ${params.min_targets}
   - Min CpGs       : ${params.min_cpgs}
@@ -116,7 +121,6 @@ Phylogenetic parameters:
   - Circular layout: ${params.circular_tree}
 Optional analyses  :
   - Bootstrap      : ${params.run_bootstrap}
-  - Evaluation     : ${params.run_evaluation}
   - Methylation    : ${params.run_methylation}
 ===========================================
 """
@@ -134,8 +138,6 @@ if (params.run_methylation) {
     include { INFER_CELLTYPE } from './modules/infer_celltype/infer_celltype.nf'
 }
 
-//include { EVALUATION } from './modules/evaluation/evaluation.nf' 
-
 
 // Main workflow
 workflow {
@@ -144,13 +146,7 @@ workflow {
         .splitCsv(header:true)
         .filter { row -> !row.sample_id.startsWith('#') && row.ms_fastq_1 }
         .map { row -> 
-            ms_fastq = file(row.ms_fastq_1)
-            
-            if (!ms_fastq.exists()) {
-                log.error "ERROR: Microsatellite FASTQ file does not exist: ${row.ms_fastq_1}"
-                exit 1
-            }
-
+            ms_fastq = file(row.ms_fastq_1, checkIfExists: true)
             tuple(row.sample_id, ms_fastq)
         }
         .set { ms_input_ch }
@@ -161,13 +157,7 @@ workflow {
             .splitCsv(header:true)
             .filter { row -> !row.sample_id.startsWith('#') && row.meth_fastq_1 }
             .map { row ->
-                meth_fastq = file(row.meth_fastq_1)
-                
-                if (!meth_fastq.exists()) {
-                    log.error "ERROR: Methylation FASTQ file does not exist: ${row.meth_fastq_1}"
-                    exit 1
-                }
-
+                meth_fastq = file(row.meth_fastq_1, checkIfExists: true)
                 tuple(row.sample_id, meth_fastq)
             }
             .set { methylation_input_ch }
@@ -199,17 +189,7 @@ workflow {
     if (params.run_methylation && params.celltype_ref_dir) {
         INFER_CELLTYPE(methylation_allc_ch.map { tuple -> tuple[1] })
     }
-
-    // if (params.run_evaluation) {
-    //     if (params.ground_truth) {
-    //         EVALUATION(tree_ch, file(params.ground_truth))
-    //         evaluation_results_ch = EVALUATION.out.results
-    //     } else {
-    //         log.warn "Evaluation requested but no ground truth provided. Skipping evaluation."
-    //     }
-    // }
 }
-
 
 // Handle workflow completion
 workflow.onComplete {
@@ -241,12 +221,6 @@ workflow.onComplete {
             """
         }
         
-        if (params.run_evaluation && params.ground_truth) {
-            log.info """
-        Evaluation results:
-        - Evaluation metrics: ${params.output_dir}/evaluation/evaluation_results.txt
-            """
-        }
         
         if (params.run_methylation) {
             log.info """
