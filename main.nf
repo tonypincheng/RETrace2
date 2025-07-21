@@ -50,10 +50,6 @@ def helpMessage() {
     Optional analyses:
       --run_bootstrap   Run bootstrap analysis (default: ${params.run_bootstrap})
       --bootstrap_iterations Number of bootstrap iterations (default: ${params.bootstrap_iterations})
-      
-      --run_evaluation  Run evaluation (requires ground truth) (default: ${params.run_evaluation})
-      --ground_truth    Path to ground truth data (default: ${params.ground_truth})
-      
       --run_methylation Run methylation analysis (default: ${params.run_methylation})
       --methylpy_ref    Path prefix for methylpy reference files [optional]. If not specified, will use ${params.genome_base}/${params.genome}/methylpl-ref/${params.genome}      
       --min_reads_per_site Minimum number of reads required per cytosine site (default: 1)
@@ -125,7 +121,6 @@ Phylogenetic parameters:
   - Circular layout: ${params.circular_tree}
 Optional analyses  :
   - Bootstrap      : ${params.run_bootstrap}
-  - Evaluation     : ${params.run_evaluation}
   - Methylation    : ${params.run_methylation}
 ===========================================
 """
@@ -142,8 +137,6 @@ if (params.run_methylation) {
     include { METHYLATION } from './modules/methylation/methylation.nf'
     include { INFER_CELLTYPE } from './modules/infer_celltype/infer_celltype.nf'
 }
-
-//include { EVALUATION } from './modules/evaluation/evaluation.nf' 
 
 
 // Main workflow
@@ -196,17 +189,7 @@ workflow {
     if (params.run_methylation && params.celltype_ref_dir) {
         INFER_CELLTYPE(methylation_allc_ch.map { tuple -> tuple[1] })
     }
-
-    // if (params.run_evaluation) {
-    //     if (params.ground_truth) {
-    //         EVALUATION(tree_ch, file(params.ground_truth))
-    //         evaluation_results_ch = EVALUATION.out.results
-    //     } else {
-    //         log.warn "Evaluation requested but no ground truth provided. Skipping evaluation."
-    //     }
-    // }
 }
-
 
 // Handle workflow completion
 workflow.onComplete {
@@ -238,12 +221,6 @@ workflow.onComplete {
             """
         }
         
-        if (params.run_evaluation && params.ground_truth) {
-            log.info """
-        Evaluation results:
-        - Evaluation metrics: ${params.output_dir}/evaluation/evaluation_results.txt
-            """
-        }
         
         if (params.run_methylation) {
             log.info """
