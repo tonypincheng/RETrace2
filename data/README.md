@@ -67,11 +67,6 @@ These test datasets are designed for quick validation of the RETrace2 pipeline. 
 nextflow run main.nf --input_dir data/ --output_dir results/
 ```
 
-### Pipeline with Ground Truth Validation (HCT116 data)
-```bash
-nextflow run main.nf --input_dir data/ --output_dir results/ --ground_truth true
-```
-
 ### Dual-omic Pipeline (MSH2 data)
 ```bash
 nextflow run main.nf --input_dir data/ --output_dir results/ --methylation true

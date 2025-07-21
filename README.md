@@ -84,14 +84,11 @@ The repository includes small test datasets in the `data/` directory:
 - 6 FASTQ files with ~100,000 reads each
 - HCT116 cell line clones from a cell culture tree model
 - 12k probe set targeting homopolymers (10-14bp repeat lengths)
-- Includes ground truth data for validation
-- Sufficient data to test the pipeline's basic functionality and ground truth validation
 
 ### MSH2 Mouse Data
 - 6 FASTQ files with ~400,000 reads for microsatellite libraries and ~100,000 reads for methylation libraries
 - Includes both microsatellite and methylation libraries
 - Designed for testing dual-omic pipeline capabilities
-- Sufficient data to test the pipeline's methylation analysis functionality
 
 For details about the test data, see [data/README.md](data/README.md).
 
