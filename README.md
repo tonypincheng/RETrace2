@@ -175,12 +175,6 @@ An example samplesheet has been provided in [assets/samplesheet_msh2.csv](assets
 > - **Optimal**: Set based on your data size - monitor actual usage and adjust accordingly
 > - **Rule of thumb**: Start with default, increase if you see OOM errors, decrease if you have excess unused memory
 
-**Reference Genome Settings:**
-| Parameter | Default | Description |
-|-----------|---------|-------------|
-| `--bwa_index_path` | Auto-detected | Path to BWA index. If not specified, uses `genome_base/genome/bwa-index/genome.fa` |
-| `--ref_fasta` | Auto-detected | Path to reference FASTA. If not specified, uses `genome_base/genome/raw_fasta/genome.fa` |
-
 **Sample Quality Parameters:**
 | Parameter | Default | Description |
 |-----------|---------|-------------|
@@ -214,7 +208,6 @@ An example samplesheet has been provided in [assets/samplesheet_msh2.csv](assets
 | Parameter | Default | Description |
 |-----------|---------|-------------|
 | `--run_methylation` | false | Run methylation analysis |
-| `--methylpy_ref` | Auto-detected | Path prefix for methylpy reference files. If not specified, uses `genome_base/genome/methylpl-ref/genome` |
 | `--min_reads_per_site` | 1 | Minimum number of reads required per cytosine site |
 | `--min_shared_sites` | 100 | Minimum number of shared sites required for comparison |
 | `--celltype_ref_dir` | - | Directory containing reference cell type files (required for cell type inference) |
@@ -224,8 +217,6 @@ An example samplesheet has been provided in [assets/samplesheet_msh2.csv](assets
 For a complete and up-to-date list of parameters, run `nextflow run main.nf --help`.
 
 <br>
-<br>
-
 
 ## Environments
 RETrace2 supports two execution environments. **Docker is the recommended approach** for most users.
