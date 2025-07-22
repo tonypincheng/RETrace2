@@ -219,15 +219,14 @@ For a complete and up-to-date list of parameters, run `nextflow run main.nf --he
 <br>
 
 ## Environments
-RETrace2 supports two execution environments. **Docker is the recommended approach** for most users.
+RETrace2 supports two execution environments.
 
 ### Docker (Recommended) 🐳
 **✅ Easiest setup - no dependency management required!**
 
 **System Requirements:**
-- **OS**: Linux (tested on Ubuntu/CentOS/AWS EC2)
-- **Memory**: 16GB+ RAM recommended (32GB+ for large datasets)
-- **Storage**: 50GB+ free disk space
+- **OS**: Linux
+- **Memory**: 16GB+ RAM recommended
 - **Docker**: Version 20.10+ ([install here](https://docs.docker.com/get-docker/))
 
 ```bash
@@ -280,6 +279,11 @@ conda activate retrace2
 git clone https://github.com/HipSTR-Tool/HipSTR
 cd HipSTR && make
 # Add HipSTR to PATH or use --hipstr_path parameter
+```
+
+```bash
+# Usage
+nextflow run main.nf
 ```
 
 <br>
