@@ -214,7 +214,7 @@ An example samplesheet has been provided in [assets/samplesheet_msh2.csv](assets
 | `--celltype_ref_pattern` | *.tsv.gz | Pattern to match files in celltype_ref_dir |
 | `--zscore_threshold` | -1.2 | Z-score threshold for cell type inference |
 
-For a complete and up-to-date list of parameters, run `nextflow run main.nf --help`.
+For a complete and up-to-date list of parameters, run `nextflow run main.nf --help` or see the parameter definitions in [main.nf](main.nf).
 
 <br>
 
@@ -290,8 +290,6 @@ nextflow run main.nf
 
 ## Reference Genome Configuration
 
-RETrace2 provides flexible options for specifying reference genomes:
-
 ### Option 1: Standard Directory Structure
 
 The pipeline uses a standardized directory structure for organizing reference genomes:
@@ -360,19 +358,17 @@ RETrace2 is built upon the foundation of the original [RETrace](https://github.c
 1. **Enhanced Pipeline Efficiency**
    - Implemented with Nextflow to streamline workflow execution
    - Improved parallelization for faster processing
-   - Simplified execution and dependency management
+   - Simplified execution and dependency management with Docker container
 
 2. **New Features**
    - Expanded support for homopolymers through customizable target BED files
    - Target-based bootstrapping for more robust tree reconstruction
    - Integrated methylation analysis for cell type inference
-   - Enhanced tree visualization with customizable colors
-   - Included test datasets for quick evaluation and pipeline validation
+   - Included test datasets and tutorial for quick pipeline validation
 
 3. **Improved Code Quality**
    - Modular design for better maintainability
    - Comprehensive documentation
-   - Standardized input/output interfaces
    - Better error handling and reporting
 
 Special thanks to the original RETrace developer [Chris Wei](https://github.com/cjwei) for the foundational work in microsatellite-based lineage tracing.
