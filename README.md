@@ -63,7 +63,6 @@ RETrace2/
 │   ├── mapping/         # Read trimming and alignment
 │   ├── stats/           # Count targets 
 │   ├── hipstr/          # Microsatellite calling
-│   ├── phylo/           # Phylogenetic tree reconstruction
 │   ├── bootstrap/       # Tree bootstrapping analysis
 │   ├── methylation/     # Methylation processing
 │   └── infer_celltype/  # Infer cell type from methylation
