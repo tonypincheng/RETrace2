@@ -7,6 +7,7 @@ import argparse
 import os
 import sys
 import time
+import json
 from tqdm import tqdm 
 
 # Set a random seed for reproducibility
@@ -376,6 +377,19 @@ if __name__ == "__main__":
         f.write(f"Random Percentages - Mean: {np.mean(random_percentages):.2f}%, Median: {np.median(random_percentages):.2f}%, Max: {np.max(random_percentages):.2f}%\n")
     
     print(f"\nStatistics saved to '{stats_file}'")
+    
+    # Save permutation test data to JSON
+    json_file = f"{args.output_prefix}.json"
+    permutation_data = {
+        "observed_percentage": observed_percentage,
+        "random_percentages": random_percentages,
+        "comparisons": comparisons,
+        "pairs": pairs,
+        "p_value": p_value
+    }
+    with open(json_file, "w") as f:
+        json.dump(permutation_data, f, indent=4)
+    print(f"Permutation test data saved to '{json_file}'")
     
     # Visualize the distribution 
     plt.figure(figsize=(10, 5), dpi=300)
