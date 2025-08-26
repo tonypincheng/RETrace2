@@ -20,11 +20,14 @@ def multi_calcTriplets(triplet_group, NJTree, rootDist_pd, sampleDict, tripletDi
             MRCA_dist = NJTree.get_distance(MRCA)
             tree_dist.append(MRCA_dist)
             ref_dist.append(rootDist_pd.loc[sampleDict[triplet[sample_pair[0]]]["clone"]][sampleDict[triplet[sample_pair[1]]]["clone"]])
-        #We want to save the count information in encoded string treeDict[triplet]: ref_dist,[1 (correct) or 0 (incorrect)]
-        if tree_dist.index(max(tree_dist)) == ref_dist.index(max(ref_dist)): #If using MRCA depth as comparison metric (find most related pair)
+        # Skip if all distances are equal OR if max values are tied (Note: this is a bug fix from the original RETrace repo, but should be minor becasue there is another filter downstream)
+        if len(set(ref_dist)) == 1 or ref_dist.count(max(ref_dist)) > 1 or len(set(tree_dist)) == 1 or tree_dist.count(max(tree_dist)) > 1:
+            continue
+        if tree_dist.index(max(tree_dist)) == ref_dist.index(max(ref_dist)): 
             tripletDict[triplet] = str(max(ref_dist)) + ",1"
         else:
             tripletDict[triplet] = str(max(ref_dist)) + ",0"
+            
     return
 
 def calc_tripletAccuracy(tripletDict, prefix):
@@ -38,6 +41,7 @@ def calc_tripletAccuracy(tripletDict, prefix):
                 errorDict[ref_dist]["Total"] = 0
             errorDict[ref_dist]["Correct"] += int(correct_bool)
             errorDict[ref_dist]["Total"] += 1
+            
     #Plot propotion of correct triplets per distance metric
     dist_list = sorted(errorDict.keys())
     corr_list = [] #Number of correct triplets
@@ -50,17 +54,19 @@ def calc_tripletAccuracy(tripletDict, prefix):
         rate_corr_list.append(errorDict[dist]["Correct"] / errorDict[dist]["Total"])
         total_corr += errorDict[dist]["Correct"]
         total_triplets += errorDict[dist]["Total"]
-    dist_list.append("All Triplets")
+    dist_list.append("All_Distances")
     corr_list.append(total_corr)
     rate_corr_list.append(total_corr / total_triplets)
     num_list.append(total_triplets)
-    corr_df = pd.DataFrame({"Distance": dist_list, "Correct Triplets": rate_corr_list})
-    sns_barplot = sns.barplot(x="Distance", y="Correct Triplets", data=corr_df)
+    corr_df = pd.DataFrame({"MRCA_Distance": dist_list, "Percent_Correct_Triplets": rate_corr_list})
+    sns_barplot = sns.barplot(x="MRCA_Distance", y="Percent_Correct_Triplets", data=corr_df)
     fig = sns_barplot.get_figure()
-    fig.savefig(prefix + ".evalPhylo.eps")
+    fig.savefig(prefix + ".evalPhylo.pdf")
 
     #Write correct triplet rate into text file
     f_output = open(prefix + ".evalPhylo.txt", 'w')
+    # Add header line to explain columns
+    f_output.write("MRCA_Distance\tCorrect_Triplets\tTotal_Triplets\tPercent_Accuracy\n")
     f_output.write("\n".join([str(dist_list[i]) + "\t" + str(corr_list[i]) + "\t" + str(num_list[i]) + "\t" + str(float(corr_list[i] / num_list[i])) for i in range(len(dist_list))]) + "\n")
     f_output.close()
 
@@ -104,11 +110,13 @@ def load_samplesheet(samplesheet_path):
 
 def evalPhylo(samplesheet, prefix, exVivo_rootDist, tree_file, nproc, distDict_file):
     '''
-    This script is from the original RETrace repository, specifically for our known ex vivo cell culture tree.  It will be used to determine the accuracy of any phylogenetic tree we calculate.  To do this, we need to input the following files:
+    This script is modified from the original RETrace repository with minorbug fixes.  It is used to calculate ex vivo cell culture tree accuracy.  
+    To do this, we need to input the following files:
         1) samplesheet = CSV file containing sample information with 'sample_id' and 'group' columns
         2) exVivo_dist = csv file containing MRCA distance from root, as approximated in units of cell divisions
         3) newick_tree = file containing Newick tree output
         4) prefix = output prefix for error calculation statistics comparing calculated Newick tree to given ex vivo tree
+        5) nproc = number of processes (if None, runs sequentially; if specified, uses parallel processing)
     We will then use the above input to calculate an errorDict which contains the following structure:
         errorDict
             cell_div = reference cell division difference between nodes (ex: [2-1-G10_3-1-A2, 2-1-G10_3-1-B1, 2-2-B1_3-2-A6] = abs(max())) 
@@ -128,8 +136,6 @@ def evalPhylo(samplesheet, prefix, exVivo_rootDist, tree_file, nproc, distDict_f
     NJTree = Tree(newick_tree)
 
     #Create list of all triplets and run through to determine whether each triplet is correct
-    tripletDict = manager.dict() #This allows for parallel processing of triplet errors for multiple triplets at once
-    jobs = []
     triplet_set = set()
     print("Naming all triplets in tree")
     for sample1 in tqdm(distDict["samples"]):
@@ -140,19 +146,29 @@ def evalPhylo(samplesheet, prefix, exVivo_rootDist, tree_file, nproc, distDict_f
                 clone3 = sampleDict[sample3]["clone"]
                 triplet = tuple(sorted([sample1, sample2, sample3]))
                 if len(set([clone1, clone2, clone3])) >= 2 and len(set(triplet)) == 3:
-                # if len(set([clone1, clone2, clone3])) == 3 and triplet not in triplet_list: #We want only triplets where each of the three leaves stem from different clones
                     triplet_set.add(triplet)
     triplet_list = list(triplet_set)
 
     print("Calculating correct triplet rate")
-    random.shuffle(triplet_list) #We want to randomize in order to even processing time
-    for triplet_group in [triplet_list[i::nproc] for i in range(nproc)]:
-        p = multiprocessing.Process(target = multi_calcTriplets, args = (triplet_group, NJTree, rootDist_pd, sampleDict, tripletDict))
-        jobs.append(p)
-        p.start()
-    #Join tripletDict
-    for p in jobs:
-        p.join()
+    
+    if nproc is None or nproc == 1:
+        # Sequential processing (default for reproducible results)
+        print("Running sequentially with nproc=1")
+        tripletDict = {}  # Use regular dict for sequential processing
+        multi_calcTriplets(triplet_list, NJTree, rootDist_pd, sampleDict, tripletDict)
+    else:
+        # Parallel processing when nproc is explicitly specified > 1
+        print(f"Running with {nproc} processes")
+        random.shuffle(triplet_list) #Randomize for load balancing in parallel mode
+        tripletDict = manager.dict() #This allows for parallel processing of triplet errors for multiple triplets at once
+        jobs = []
+        for triplet_group in [triplet_list[i::nproc] for i in range(nproc)]:
+            p = multiprocessing.Process(target = multi_calcTriplets, args = (triplet_group, NJTree, rootDist_pd, sampleDict, tripletDict))
+            jobs.append(p)
+            p.start()
+        #Join tripletDict
+        for p in jobs:
+            p.join()
 
     #Plot percentage of correct triplets
     print("Plotting/printing correct triplet rate")
@@ -174,8 +190,8 @@ def main():
     parser.add_argument("--exVivo_rootDist", 
         default="~/software/RETrace/Data/exVivo.rootDist.csv",
         help="CSV file with MRCA distances from root")
-    parser.add_argument("--nproc", type=int, default=10,
-        help="Number of processors to use")
+    parser.add_argument("--nproc", type=int, default=None,
+        help="Number of processors to use for parallel processing (default: sequential processing)")
     
     args = parser.parse_args()
     

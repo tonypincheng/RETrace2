@@ -128,7 +128,7 @@ def drawTree(distDict, sample_list, outgroup, prefix, bootstrap):
             statsOutput.write("\nDistance Matrix (pairwise distances between samples):\n")
             statsOutput.write("Sample," + ",".join(sorted(sample_list)) + "\n")
             for dist_idx, dist_list in enumerate(distMatrix):
-                statsOutput.write(f"{sorted(sample_list)[dist_idx]},{','.join(str(round(i, 3)) for i in dist_list)}\n")
+                statsOutput.write(f"{sorted(sample_list)[dist_idx]},{','.join(str(round(i, 4)) for i in dist_list)}\n") # change to 4 decimal places from 3
             
             statsOutput.write("\nTarget Matrix (number of shared targets between samples):\n")
             statsOutput.write("Sample," + ",".join(sorted(sample_list)) + "\n")
