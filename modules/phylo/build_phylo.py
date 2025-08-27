@@ -11,6 +11,7 @@ import numpy as np
 import statistics
 import argparse
 import re
+import random
 
 def calcBulk(alleleDict):
     """
@@ -197,7 +198,11 @@ def bootstrapTree(nodeDict, treeTemp, bootstrap_samples):
                 nodeDict[node]["Num_verified"] += 1
     return nodeDict
 
-def buildPhylo(sample_list_file, prefix, alleleDict_file, dist_metric, outgroup, bootstrap, bootstrap_iterations=100):
+def buildPhylo(sample_list_file, prefix, alleleDict_file, dist_metric, outgroup, bootstrap, bootstrap_iterations=100, random_seed=42):
+    print(f"Setting random seed to {random_seed} for reproducible results...")
+    np.random.seed(random_seed)
+    random.seed(random_seed)
+
     print("Loading allele dictionary...")
     with open(alleleDict_file, 'rb') as f:
         alleleDict = pickle.load(f)
@@ -289,6 +294,7 @@ def main():
     parser.add_argument('--prefix', required=True, help='Output file prefix')
     parser.add_argument('--dist_metric', default='minComp_EqorNot', help='Distance metric (default: minComp_EqorNot)')
     parser.add_argument('--outgroup', default='Midpoint', help='Outgroup for tree rooting (default: Midpoint)')
+    parser.add_argument('--random_seed', type=int, default=42, help='Random seed for reproducible results (default: 42)')
     parser.add_argument('--bootstrap', action='store_true', help='Run bootstrap analysis')
     parser.add_argument('--bootstrap_iterations', type=int, default=100, help='Number of bootstrap iterations (default: 100)')
     
@@ -301,7 +307,8 @@ def main():
         args.dist_metric,
         args.outgroup,
         args.bootstrap,
-        args.bootstrap_iterations
+        args.bootstrap_iterations,
+        args.random_seed
     )
 
 if __name__ == "__main__":

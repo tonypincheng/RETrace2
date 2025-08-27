@@ -46,6 +46,7 @@ def helpMessage() {
       --outgroup        Outgroup for tree rooting (default: ${params.outgroup})
       --color_background Apply color to background instead of node circles (default: ${params.color_background})
       --circular_tree   Render phylogenetic tree in circular layout (default: ${params.circular_tree})
+      --random_seed     Global random seed for reproducible phylogenetic tree building (default: ${params.random_seed})
       
     Optional analyses:
       --run_bootstrap   Run bootstrap analysis (default: ${params.run_bootstrap})
@@ -119,6 +120,7 @@ Phylogenetic parameters:
   - Outgroup       : ${params.outgroup}
   - Color background: ${params.color_background}
   - Circular layout: ${params.circular_tree}
+  - Random seed    : ${params.random_seed}
 Optional analyses  :
   - Bootstrap      : ${params.run_bootstrap}
   - Methylation    : ${params.run_methylation}

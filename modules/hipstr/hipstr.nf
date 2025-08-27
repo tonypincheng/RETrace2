@@ -32,30 +32,30 @@ process FILTER_BAMS_BY_STATS {
 process HIPSTR_PER_CHROM {
     tag "$chrom"
     container "tonypincheng/retrace2-python:latest"
-    
+
     input:
     val(chrom)
     path(bam_files)
     path(bam_indices)
-    
+
     output:
     path("${params.output_prefix}.${chrom}.vcf.gz"), emit: vcf
     path("${params.output_prefix}.${chrom}.vcf.gz.tbi"), emit: vcf_index
     path("${params.output_prefix}.${chrom}.log"), emit: log
-    
+
     script:
     // Create comma-separated list for HipSTR
     def bam_list = bam_files.join(',')
-    
+
     // Add SNP VCF option if provided
     def snp_option = params.snp_vcf ? "--snp-vcf ${params.snp_vcf}" : ""
-    
+
     // Handle paired-end vs single-end
     def use_unpaired = params.paired_end ? "" : "--use-unpaired"
-    
+
     // Determine fasta path
     def fasta_path = params.ref_fasta ?: "${params.genome_base}/${params.genome}/raw_fasta/${params.genome}.fa"
-    
+
     // Get HipSTR path from params or use command directly if not specified
     def hipstr_path = params.hipstr_path ?: "HipSTR"
     
@@ -109,31 +109,33 @@ process MERGE_VCFS {
 process HIPSTR_CALLING {
     publishDir "${params.output_dir}/hipstr", mode: 'copy'
     container "tonypincheng/retrace2-python:latest"
-    
+
     input:
     path(bam_files)
     path(bam_indices)
     path(sample_stats)
-    
+
     output:
     path("${params.output_prefix}.vcf"), emit: vcf
     path("${params.output_prefix}.log"), emit: hipstr_log
-    
+
     script:
     // Create comma-separated list for HipSTR
     def bam_list = bam_files.join(',')
-    
+
     // Add SNP VCF option if provided
     def snp_option = params.snp_vcf ? "--snp-vcf ${params.snp_vcf}" : ""
-    
+
     // Handle paired-end vs single-end
     def use_unpaired = params.paired_end ? "" : "--use-unpaired"
-    
+
     // Determine fasta path
     def fasta_path = params.ref_fasta ?: "${params.genome_base}/${params.genome}/raw_fasta/${params.genome}.fa"
-    
+
     // Get HipSTR path from params or use command directly if not specified
     def hipstr_path = params.hipstr_path ?: "HipSTR"
+
+    // Note: HipSTR does not support random seed option
     
     """
     # Run HipSTR in standard mode

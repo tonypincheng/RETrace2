@@ -25,6 +25,7 @@ process BUILD_TREE {
         --prefix ${params.output_prefix} \\
         --dist_metric ${params.dist_metric} \\
         --outgroup ${params.outgroup} \\
+        --random_seed ${params.random_seed} \\
         ${params.run_bootstrap ? "--bootstrap --bootstrap_iterations ${params.bootstrap_iterations}" : ""}
     """
 }
