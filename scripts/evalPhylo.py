@@ -58,10 +58,6 @@ def calc_tripletAccuracy(tripletDict, prefix):
     corr_list.append(total_corr)
     rate_corr_list.append(total_corr / total_triplets)
     num_list.append(total_triplets)
-    corr_df = pd.DataFrame({"MRCA_Distance": dist_list, "Percent_Correct_Triplets": rate_corr_list})
-    sns_barplot = sns.barplot(x="MRCA_Distance", y="Percent_Correct_Triplets", data=corr_df)
-    fig = sns_barplot.get_figure()
-    fig.savefig(prefix + ".evalPhylo.pdf")
 
     #Write correct triplet rate into text file
     f_output = open(prefix + ".evalPhylo.txt", 'w')
