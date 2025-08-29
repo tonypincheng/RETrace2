@@ -28,6 +28,7 @@ RETrace2 is a dual-omic Nextflow bioinformatics pipeline for reconstructing sing
   - [Parameters](#parameters)
 - [Environments](#environments)
 - [Reference Genome Configuration](#reference-genome-configuration)
+- [Reproducibility Notes](#reproducibility-notes)
 - [Contributing](#contributing)
 - [License](#license)
 - [Acknowledgments](#acknowledgments)
@@ -333,6 +334,12 @@ This option overrides the standard directory structure.
 For methylation analysis, the `--methylpy_ref` parameter specifies the prefix path for both forward and reverse methylation references. The pipeline will automatically append "_f" and "_r" to this prefix to locate the forward and reverse reference files, respectively.
 <br><br>
 
+
+## Reproducibility Notes
+
+**Tree Variation**: Phylogenetic trees may vary between runs due to algorithmic tie-breaking. This is normal behavior. Use bootstrap analysis to assess node confidence.
+
+<br>
 
 ## Contributing
 
