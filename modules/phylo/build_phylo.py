@@ -170,7 +170,6 @@ def drawTree(distDict, sample_list, outgroup, prefix, bootstrap):
 def bootstrap_iteration(args):
     i, target_list, sharedDict, alleleDict, sample_list, dist_metric, outgroup, prefix = args
     print(f"\tIteration {i}: Sampling {len(target_list)} targets...")
-    np.random.seed(i)  # Unique seed per iteration
     sample_size = int(0.8 * len(target_list))  # specify sample 80% of targets
     bootstrap_targets = set(np.random.choice(target_list, sample_size, replace=False))
     unique_targets = len(bootstrap_targets)
@@ -198,10 +197,9 @@ def bootstrapTree(nodeDict, treeTemp, bootstrap_samples):
                 nodeDict[node]["Num_verified"] += 1
     return nodeDict
 
-def buildPhylo(sample_list_file, prefix, alleleDict_file, dist_metric, outgroup, bootstrap, bootstrap_iterations=100, random_seed=42):
-    print(f"Setting random seed to {random_seed} for reproducible results...")
-    np.random.seed(random_seed)
-    random.seed(random_seed)
+def buildPhylo(sample_list_file, prefix, alleleDict_file, dist_metric, outgroup, bootstrap, bootstrap_iterations=100):
+    print("Building phylogenetic tree...")
+    print("NOTE: Tree topology may vary between runs due to tie-breaking in neighbor-joining algorithm")
 
     print("Loading allele dictionary...")
     with open(alleleDict_file, 'rb') as f:
@@ -294,7 +292,7 @@ def main():
     parser.add_argument('--prefix', required=True, help='Output file prefix')
     parser.add_argument('--dist_metric', default='minComp_EqorNot', help='Distance metric (default: minComp_EqorNot)')
     parser.add_argument('--outgroup', default='Midpoint', help='Outgroup for tree rooting (default: Midpoint)')
-    parser.add_argument('--random_seed', type=int, default=42, help='Random seed for reproducible results (default: 42)')
+
     parser.add_argument('--bootstrap', action='store_true', help='Run bootstrap analysis')
     parser.add_argument('--bootstrap_iterations', type=int, default=100, help='Number of bootstrap iterations (default: 100)')
     
@@ -307,8 +305,7 @@ def main():
         args.dist_metric,
         args.outgroup,
         args.bootstrap,
-        args.bootstrap_iterations,
-        args.random_seed
+        args.bootstrap_iterations
     )
 
 if __name__ == "__main__":
