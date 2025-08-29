@@ -339,6 +339,8 @@ For methylation analysis, the `--methylpy_ref` parameter specifies the prefix pa
 
 **Tree Variation**: Phylogenetic trees may vary between runs due to algorithmic tie-breaking. This is normal behavior. Use bootstrap analysis to assess node confidence.
 
+**Published Analysis**: See [notebooks/](notebooks/) for code examples and analysis workflows used with published datasets.
+
 <br>
 
 ## Contributing
