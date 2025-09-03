@@ -166,7 +166,7 @@ An example samplesheet has been provided in [assets/samplesheet_msh2.csv](assets
 |-----------|---------|-------------|
 | `--output_dir` | results | Directory for output files |
 | `--output_prefix` | retrace2_analysis | Prefix for output files |
-| `--threads` | 4 | Number of CPU threads per task |
+| `--threads` | 1 | Number of CPU threads per task |
 | `--memory` | 16.GB | Memory allocation per task |
 
 > **💡 Memory Allocation Tips:**
