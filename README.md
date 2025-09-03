@@ -337,6 +337,8 @@ For methylation analysis, the `--methylpy_ref` parameter specifies the prefix pa
 
 ## Reproducibility Notes
 
+**Alignment Reproducibility**: Single-threaded BWA-MEM is used by default (`threads = 1`) for reproducible results. Multi-threading can introduce ~0.1-0.2% variance in target counts due to non-deterministic handling of multi-mapping reads. Use `--threads 4` for faster processing if variance is acceptable.
+
 **Tree Variation**: Phylogenetic trees may vary between runs due to algorithmic tie-breaking. This is normal behavior. Use bootstrap analysis to assess node confidence.
 
 **Published Analysis**: See [notebooks/](notebooks/) for code examples and analysis workflows used with published datasets.
