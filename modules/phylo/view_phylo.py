@@ -99,7 +99,7 @@ def style_tree_nodes(tree, sample_data, color_background=False):
 def render_tree(tree, prefix, tree_style):
     """Render tree to PDF and PNG files"""
     tree.render(f"{prefix}.viewPhylo.pdf", tree_style=tree_style, dpi=500)
-    #tree.render(f"{prefix}.viewPhylo.png", tree_style=tree_style, dpi=500)
+    tree.render(f"{prefix}.viewPhylo.png", tree_style=tree_style, dpi=500)
     
 
 def viewPhylo(samplesheet, tree_file, prefix, bootstrap, color_background=False, circular=False):
