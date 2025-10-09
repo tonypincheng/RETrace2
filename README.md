@@ -212,7 +212,7 @@ An example samplesheet has been provided in [assets/samplesheet_msh2.csv](assets
 | `--min_shared_sites` | 100 | Minimum number of shared sites required for comparison |
 | `--celltype_ref_dir` | - | Directory containing reference cell type files (required for cell type inference) |
 | `--celltype_ref_pattern` | *.tsv.gz | Pattern to match files in celltype_ref_dir |
-| `--zscore_threshold` | -1.2 | Z-score threshold for cell type inference |
+| `--zscore_threshold` | -1.1 | Z-score threshold for cell type inference |
 
 For a complete and up-to-date list of parameters, run `nextflow run main.nf --help` or see the parameter definitions in [main.nf](main.nf).
 
