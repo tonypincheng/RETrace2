@@ -337,9 +337,7 @@ For methylation analysis, the `--methylpy_ref` parameter specifies the prefix pa
 
 ## Reproducibility Notes
 
-**Alignment Reproducibility**: Single-threaded BWA-MEM is used by default (`threads = 1`) for reproducible results. Multi-threading can introduce ~0.1-0.2% variance in target counts due to non-deterministic handling of multi-mapping reads. Use `--threads 4` for faster processing if variance is acceptable.
-
-**Tree Variation**: Phylogenetic trees may vary between runs due to algorithmic tie-breaking. This is normal behavior. Use bootstrap analysis to assess node confidence.
+**Stochasticity**: The pipeline may exhibit some stochasticity in results across runs due to multi-threading effects and algorithmic tie-breaking.
 
 **Published Analysis**: See [notebooks/](notebooks/) for code examples and analysis workflows used with published datasets.
 
@@ -363,25 +361,13 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Acknowledgments
 
-RETrace2 is built upon the foundation of the original [RETrace](https://github.com/cjwei/RETrace) pipeline. This new version represents a evolution with the following improvements:
+RETrace2 is built upon the original [RETrace](https://github.com/cjwei/RETrace) pipeline by [Chris Wei](https://github.com/cjwei). Key improvements include:
 
-1. **Enhanced Pipeline Efficiency**
-   - Implemented with Nextflow to streamline workflow execution
-   - Improved parallelization for faster processing
-   - Simplified execution and dependency management with Docker container
-
-2. **New Features**
-   - Expanded support for homopolymers through customizable target BED files
-   - Target-based bootstrapping for more robust tree reconstruction
-   - Integrated methylation analysis for cell type inference
-   - Included test datasets and tutorial for quick pipeline validation
-
-3. **Improved Code Quality**
-   - Modular design for better maintainability
-   - Comprehensive documentation
-   - Better error handling and reporting
-
-Special thanks to the original RETrace developer [Chris Wei](https://github.com/cjwei) for the foundational work in microsatellite-based lineage tracing.
+- Reimplemented in Nextflow with Docker containerization for easier deployment
+- Expanded support for homopolymers through customizable target BED files
+- Target-based bootstrapping for tree confidence assessment
+- Integrated methylation analysis for cell type inference
+- Included test datasets and tutorial for quick validation
 
 <br>
 
