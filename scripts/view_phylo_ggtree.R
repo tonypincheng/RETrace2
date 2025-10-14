@@ -5,8 +5,8 @@
 #
 # This script generates circular phylogenetic trees with continuous outer ring
 # annotations for the RETrace2 MSH2 mouse data. It creates two ring layers:
-# - Inner ring: Tissue/group colors
-# - Outer ring: Cell type colors
+# - Inner ring: Cell type colors
+# - Outer ring: Tissue/group colors
 #
 # Features:
 # - Circular layout with customizable tip labels (plain or colored backgrounds)
@@ -70,14 +70,14 @@ tip_label_data <- samples %>%
   rename(label = sample_id)
 rownames(tip_label_data) <- tip_label_data$label
 
-# Prepare data for inner ring with group names for legend
-group_ring_data <- samples %>%
-  select(sample_id, color, group) %>%
-  rename(label = sample_id)
-
-# Prepare data for outer ring with cell type names for legend
+# Prepare data for inner ring with cell type names for legend
 cell_type_ring_data <- samples %>%
   select(sample_id, cell_type_color, cell_type_assignment) %>%
+  rename(label = sample_id)
+
+# Prepare data for outer ring with group names for legend
+group_ring_data <- samples %>%
+  select(sample_id, color, group) %>%
   rename(label = sample_id)
 
 # Custom rename dictionary for group names
@@ -124,49 +124,49 @@ p <- p %<+% tip_label_data
 
 # Add tip labels with or without background color
 if (args$color_background) {
-  # Text with colored background - smaller font to avoid overlap
+  # Text with colored background
   p <- p + geom_tiplab(aes(fill = color), 
-                       size = 2.5, color = 'black', 
+                       size = 3.5, color = 'black', 
                        geom = 'label', 
                        label.padding = unit(0.1, "lines")) +
     scale_fill_identity()
 } else {
-  # Colored node circles with plain text - smaller font with offset
-  p <- p + geom_tippoint(aes(color = color), size = 3) +
-    geom_tiplab(size = 2.5, offset = 0.3) +  # Small offset to push text away from nodes
+  # Colored node circles with plain text
+  p <- p + geom_tippoint(aes(color = color), size = 2.5) +
+    geom_tiplab(size = 2.8, offset = 0.5) +  # Offset to push text away from nodes
     scale_color_identity()
 }
 
-# Add inner continuous ring for group color with legend
-p <- p + new_scale_fill() + 
-  geom_fruit(
-    data = group_ring_data,
-    geom = geom_tile,
-    mapping = aes(y = label, x = 2, fill = group),
-    pwidth = 0.1,
-    width = 3,
-    offset = 0.72
-  ) + 
-  scale_fill_manual(
-    values = group_colors_map,
-    name = "Tissue (Inner Ring)",
-    guide = guide_legend(order = 1)  # Order 1 = top
-  )
-
-# Add outer continuous ring for cell_type_color with legend
+# Add inner continuous ring for cell type color with legend
 p <- p + new_scale_fill() + 
   geom_fruit(
     data = cell_type_ring_data,
     geom = geom_tile,
     mapping = aes(y = label, x = 2, fill = cell_type_assignment),
     pwidth = 0.001,
-    width = 3,
-    offset = 0.3
+    width = 3.5,
+    offset = 1.05
   ) + 
   scale_fill_manual(
     values = cell_type_colors_map,
-    name = "Cell Type (Outer Ring)",
+    name = "Cell Type (Inner Ring)",
     guide = guide_legend(order = 2)  # Order 2 = bottom
+  )
+
+# Add outer continuous ring for tissue/group color with legend
+p <- p + new_scale_fill() + 
+  geom_fruit(
+    data = group_ring_data,
+    geom = geom_tile,
+    mapping = aes(y = label, x = 2, fill = group),
+    pwidth = 0.1,
+    width = 3.5,
+    offset = 0.2
+  ) + 
+  scale_fill_manual(
+    values = group_colors_map,
+    name = "Tissue (Outer Ring)",
+    guide = guide_legend(order = 1)  # Order 1 = top
   )
 
 # Adjust plot margins and theme, and position legends
@@ -176,7 +176,9 @@ p <- p + theme(
   legend.box = "vertical",
   legend.text = element_text(size = 20),  # Larger legend text
   legend.title = element_text(size = 21, face = "bold"),  # Larger, bold legend titles
-  legend.background = element_rect(fill = "white", colour = NA)  # White background, no border
+  legend.background = element_rect(fill = "white", colour = NA),  # White background, no border
+  legend.key.height = unit(1.2, "lines"),  # Add vertical spacing between legend items
+  legend.spacing.y = unit(0.3, "lines")  # Add spacing between legend entries
 ) +
   theme(
     legend.position.inside = c(0.85, 0.5),  # Apply position separately
