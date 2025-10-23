@@ -178,7 +178,7 @@ def read_allc_fast(file_path, cpg_only=True, has_header=False):
         print(f"Error reading {file_path}: {e}")
         return pd.DataFrame()
 
-def calculate_dissimilarity_fast(sc_df, ref_df, min_reads=1, min_sites=300):
+def calculate_dissimilarity_fast(sc_df, ref_df, min_reads=1, min_sites=100):
     """Fast vectorized dissimilarity calculation."""
     if sc_df.empty or ref_df.empty:
         return np.nan, 0
@@ -236,7 +236,7 @@ def preload_references(ref_files, cpg_only=True):
     
     return ref_data
 
-def process_single_cell_batch(sc_file, sc_name, ref_data_dict, min_reads=1, min_sites=300, cpg_only=True):
+def process_single_cell_batch(sc_file, sc_name, ref_data_dict, min_reads=1, min_sites=100, cpg_only=True):
     """Process one single cell against all preloaded references with memory monitoring."""
     try:
         # Monitor memory at start
@@ -267,7 +267,7 @@ def process_single_cell_batch(sc_file, sc_name, ref_data_dict, min_reads=1, min_
         print(f"Error processing {sc_name}: {e}")
         return [(sc_name, ref_name, np.nan, 0) for ref_name in ref_data_dict.keys()]
 
-def process_files_batched(sc_files, ref_files, min_reads=1, min_sites=300, n_processes=None, cpg_only=True):
+def process_files_batched(sc_files, ref_files, min_reads=1, min_sites=100, n_processes=None, cpg_only=True):
     """Batched processing with preloaded references and memory optimization."""
     # Estimate memory requirements first
     ref_memory_mb = estimate_reference_memory(ref_files)
@@ -344,7 +344,7 @@ def expand_file_patterns(file_patterns):
             expanded_files.append(pattern)
     return sorted(expanded_files)
 
-def process_single_cell_streaming(sc_file, sc_name, ref_files, min_reads=1, min_sites=300, cpg_only=True):
+def process_single_cell_streaming(sc_file, sc_name, ref_files, min_reads=1, min_sites=100, cpg_only=True):
     """Process one single cell against references without preloading all references."""
     try:
         # Load single cell once
@@ -376,7 +376,7 @@ def process_single_cell_streaming(sc_file, sc_name, ref_files, min_reads=1, min_
         print(f"Error processing {sc_name}: {e}")
         return [(sc_name, os.path.basename(ref_file).split('.')[0], np.nan, 0) for ref_file in ref_files]
 
-def process_files_streaming(sc_files, ref_files, min_reads=1, min_sites=300, n_processes=None, cpg_only=True):
+def process_files_streaming(sc_files, ref_files, min_reads=1, min_sites=100, n_processes=None, cpg_only=True):
     """Memory-efficient streaming approach that doesn't preload references."""
     n_processes = get_optimal_process_count(n_processes, 0)  # No reference memory preloaded
     
@@ -412,7 +412,7 @@ def process_files_streaming(sc_files, ref_files, min_reads=1, min_sites=300, n_p
     return pd_matrix, sites_matrix
 
 def calculate_pairwise_dissimilarity_matrix_batched(sc_files, ref_files, output_dir='.', 
-                                                   min_reads=1, min_sites=300, 
+                                                   min_reads=1, min_sites=100, 
                                                    n_processes=None, cpg_only=True,
                                                    force_streaming=False, max_ref_memory_gb=8):
     """Main function for batched processing with automatic memory management."""
@@ -501,7 +501,7 @@ if __name__ == "__main__":
                        help='Output directory for results')
     parser.add_argument('--min_reads', type=int, default=1,
                        help='Minimum number of reads for a methylation site (applies to both single cell and reference files)')
-    parser.add_argument('--min_sites', type=int, default=10,
+    parser.add_argument('--min_sites', type=int, default=100,
                        help='Minimum number of shared sites required')
     parser.add_argument('--n_processes', type=int, default=None,
                        help='Number of processes to use for parallel processing. If None, automatically determines optimal count based on system resources')
