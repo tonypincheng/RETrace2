@@ -184,8 +184,8 @@ def main():
     parser.add_argument("--distDict", required=True,
         help="Pickle file containing distance dictionary")
     parser.add_argument("--exVivo_rootDist", 
-        default="~/software/RETrace/Data/exVivo.rootDist.csv",
-        help="CSV file with MRCA distances from root")
+        default="resources/reference_phylo/HCT116_exvivo/exVivo.rootDist.v2.csv",
+        help="CSV file with MRCA distances from root (default: resources/reference_phylo/HCT116_exvivo/exVivo.rootDist.v2.csv)")
     parser.add_argument("--nproc", type=int, default=None,
         help="Number of processors to use for parallel processing (default: sequential processing)")
     
