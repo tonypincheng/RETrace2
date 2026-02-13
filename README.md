@@ -373,7 +373,7 @@ RETrace2 is built upon the original [RETrace](https://github.com/cjwei/RETrace) 
 
 ## References
 
-1. Pin-Chung Cheng, Dmitrii Kamenev, Polina Kameneva, Conor Fitzpatrick, Igor Adameyko, Peter V Kharchenko, Kun Zhang. High-resolution retrospective single cell lineage tracing with mutable homopolymers. Manuscript in preparation. (2025)
+1. Pin-Chung Cheng, Dmitrii Kamenev, Polina Kameneva, Conor Fitzpatrick, Igor Adameyko, Peter V Kharchenko, Kun Zhang. High-resolution retrospective single cell lineage tracing with mutable homopolymers. Submitted. (2026)
 
 2. Christopher Jen-Yue Wei, Kun Zhang. RETrace: simultaneous retrospective lineage tracing and methylation profiling of single cells. Genome research. (2020). https://doi.org/10.1101/gr.255851.119
 
