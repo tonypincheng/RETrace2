@@ -16,3 +16,4 @@ logs/
 test*
 __pycache__/
 archive/
+.vscode/settings.json
