@@ -108,6 +108,8 @@ git clone https://github.com/tonypincheng/retrace2.git
 cd retrace2
 ```
 
+**Typical install time** on a standard desktop computer: under 1 hour with Docker (image pull), or 1–2 hours for a local conda environment plus HipSTR compilation (network-dependent). See [Environments](#environments) for setup details.
+
 ### Usage
 
 **Recommended (Docker):**
